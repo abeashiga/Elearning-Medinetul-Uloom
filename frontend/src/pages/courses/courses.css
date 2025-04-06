@@ -30,6 +30,19 @@
   text-align: center;
 }
 
+/* Ensure section title and subtitle are white */
+.courses-header .section-title {
+  color: white;
+  font-weight: bold;
+  margin-bottom: var(--spacing-sm);
+}
+
+.courses-header .section-subtitle {
+  color: white;
+  font-size: 1.1rem;
+  margin-bottom: var(--spacing-md);
+}
+
 .search-filter-container {
   display: flex;
   gap: var(--spacing-md);
