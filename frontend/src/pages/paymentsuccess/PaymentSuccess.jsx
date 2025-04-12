@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { UserData } from '../../context/UserContext';
 import { CourseData } from '../../context/CourseContext';
 import { server } from '../../config';
@@ -11,6 +11,7 @@ const PaymentSuccess = ({ user }) => {
   const location = useLocation();
   const { fetchUser, setIsAuth } = UserData();
   const { fetchCourses, fetchMyCourse } = CourseData();
+  const messageShownRef = useRef(false);
 
   useEffect(() => {
     const verifyPayment = async () => {
@@ -44,6 +45,16 @@ const PaymentSuccess = ({ user }) => {
           throw new Error("No transaction reference found");
         }
 
+        // Check if success message has already been shown for this transaction
+        const messageKey = `payment_success_${tx_ref}`;
+        const messageShown = sessionStorage.getItem(messageKey);
+        
+        if (messageShown === 'true' || messageShownRef.current) {
+          console.log("Success message already shown for this transaction");
+          navigate('/dashboard');
+          return;
+        }
+
         // Only proceed with verification if we have a transaction reference
         console.log("Verifying payment with tx_ref:", tx_ref); // Debug log
     
@@ -67,7 +78,12 @@ const PaymentSuccess = ({ user }) => {
           await fetchCourses();
           await fetchMyCourse();
           
-          toast.success(response.data.message || "Payment verified successfully!");
+          // Show success message and mark it as shown
+          if (!messageShownRef.current) {
+            toast.success(response.data.message || "Payment verified successfully!");
+            messageShownRef.current = true;
+            sessionStorage.setItem(messageKey, 'true');
+          }
           
           // Redirect to dashboard after successful verification
           setTimeout(() => {

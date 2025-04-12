@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { server } from "../../config";
 
+
 const categories = [
   "Web Development",
   "App Development",
@@ -51,6 +52,8 @@ const AddCourse = () => {
     myForm.append("createdBy", createdBy);
     myForm.append("duration", duration);
     myForm.append("image", image);
+
+    console.log("Submitting form with image:", image);
 
     try {
       const { data } = await axios.post(

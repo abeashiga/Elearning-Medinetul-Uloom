@@ -31,3 +31,18 @@
     margin-bottom: 5px;
   }
 }
+
+.admin-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.edit-btn {
+  background: #2196f3 !important;
+}
+
+.delete-btn {
+  background: #f44336 !important;
+}

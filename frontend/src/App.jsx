@@ -28,6 +28,7 @@ import CreateAssessment from "./pages/assessment/CreateAssessment";
 import TakeAssessment from "./pages/assessment/TakeAssessment";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Certificate from "./pages/certificate/Certificate";
+import EditCourse from './admin/Courses/EditCourse';
 
 const App = () => {
   const { isAuth, user, loading } = UserData();
@@ -37,7 +38,7 @@ const App = () => {
         <Loading />
       ) : (
         <BrowserRouter>
-          <Header isAuth={isAuth} />
+          <Header isAuth={isAuth} user={user} />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
@@ -110,6 +111,14 @@ const App = () => {
                 ) : (
                   <Home />
                 )
+              }
+            />
+            <Route
+              path="/admin/course/edit/:id"
+              element={
+                <ProtectedRoute isAdmin>
+                  <EditCourse />
+                </ProtectedRoute>
               }
             />
             <Route

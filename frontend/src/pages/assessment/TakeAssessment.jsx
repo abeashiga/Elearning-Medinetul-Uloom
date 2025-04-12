@@ -18,10 +18,16 @@ const TakeAssessment = () => {
     total: 0,
     isCompleted: false
   });
+  const [hasAttempted, setHasAttempted] = useState(false);
+  const [assessmentStatus, setAssessmentStatus] = useState({
+    isPassed: false,
+    score: 0
+  });
 
   useEffect(() => {
     checkLectureProgress();
     fetchAssessment();
+    checkAssessmentStatus();
   }, [courseId]);
 
   useEffect(() => {
@@ -79,6 +85,29 @@ const TakeAssessment = () => {
     } catch (error) {
       console.error("Error checking lecture progress:", error);
       toast.error("Failed to check lecture progress");
+    }
+  };
+
+  const checkAssessmentStatus = async () => {
+    try {
+      const { data } = await axios.get(
+        `${server}/api/assessment/status/${courseId}`,
+        {
+          headers: {
+            token: localStorage.getItem("token"),
+          },
+        }
+      );
+
+      if (data.success) {
+        setHasAttempted(data.message !== "Assessment not attempted yet");
+        setAssessmentStatus({
+          isPassed: data.isPassed,
+          score: data.score || 0
+        });
+      }
+    } catch (error) {
+      console.error("Error checking assessment status:", error);
     }
   };
 
@@ -168,7 +197,10 @@ const TakeAssessment = () => {
     );
   }
 
-  if (!lectureProgress.isCompleted) {
+  // Only show the "Assessment Locked" message if:
+  // 1. User hasn't completed all lectures AND
+  // 2. User hasn't attempted the assessment yet
+  if (!lectureProgress.isCompleted && !hasAttempted) {
     return (
       <div className="container py-5">
         <div className="card shadow-sm">
@@ -192,6 +224,37 @@ const TakeAssessment = () => {
                 {Math.round((lectureProgress.completed / lectureProgress.total) * 100)}%
               </div>
             </div>
+            <button
+              className="btn btn-primary"
+              onClick={() => navigate(`/course/study/${courseId}`)}
+            >
+              Return to Course
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If user has already attempted the assessment, show a message
+  if (hasAttempted) {
+    return (
+      <div className="container py-5">
+        <div className="card shadow-sm">
+          <div className="card-body text-center">
+            {assessmentStatus.isPassed ? (
+              <FaCheckCircle className="display-1 text-success mb-3" />
+            ) : (
+              <FaTimesCircle className="display-1 text-danger mb-3" />
+            )}
+            <h2 className="card-title mb-3">
+              {assessmentStatus.isPassed ? "Assessment Passed!" : "Assessment Not Passed"}
+            </h2>
+            <p className="card-text mb-4">
+              {assessmentStatus.isPassed
+                ? "Congratulations! You have successfully passed the assessment."
+                : `You scored ${assessmentStatus.score}%. You need to score at least 50% to pass.`}
+            </p>
             <button
               className="btn btn-primary"
               onClick={() => navigate(`/course/study/${courseId}`)}

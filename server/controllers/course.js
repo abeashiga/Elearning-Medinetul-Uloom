@@ -5,6 +5,10 @@ import { User } from "../models/User.js";
 import crypto from "crypto";
 import { Payment } from "../models/Payment.js";
 import { Progress } from "../models/Progress.js";
+import fs from "fs";
+import { createNotification } from "./Notification.js";
+import path from "path";
+
 
 
 export const getAllCourses = TryCatch(async (req, res) => {
@@ -260,57 +264,110 @@ export const getYourProgress = TryCatch(async (req, res) => {
 
 export const addLecture = TryCatch(async (req, res) => {
   try {
-    const { title, description } = req.body;
     const courseId = req.params.id;
+    const { title, description } = req.body;
     const file = req.file;
 
-    if (!file) {
+    if (!courseId) {
+      if (file) await fs.promises.unlink(file.path);
       return res.status(400).json({
         success: false,
-        message: "Please upload a file"
+        message: "Course ID is required"
       });
     }
 
-    // Determine file type based on mimetype
-    let fileType;
-    if (file.mimetype.startsWith('video/')) {
-      fileType = 'video';
-    } else if (file.mimetype.startsWith('audio/')) {
-      fileType = 'audio';
-    } else if (file.mimetype === 'application/pdf') {
-      fileType = 'pdf';
-    } else if (file.mimetype.includes('powerpoint') || file.mimetype.includes('presentation')) {
-      fileType = 'ppt';
-    } else if (file.mimetype.includes('word') || file.mimetype === 'application/msword') {
-      fileType = 'doc';
+    // Verify course exists
+    const course = await Courses.findById(courseId);
+    if (!course) {
+      if (file) await fs.promises.unlink(file.path);
+      return res.status(404).json({
+        success: false,
+        message: "Course not found"
+      });
     }
 
-    // Clean the file path to store only the relative path
-    const filePath = file.path
-      .split('uploads')[1]
-      .replace(/\\/g, '/')
-      .replace(/^\/uploads/, '')
-      .replace(/^\/+/, ''); // Remove leading slashes
+    if (!title || !description || !file) {
+      if (file) await fs.promises.unlink(file.path);
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required"
+      });
+    }
+
+    // Determine file type and folder
+    let fileType;
+    let folderPath;
+    if (file.mimetype.startsWith('video/')) {
+      fileType = 'video';
+      folderPath = 'lectures';
+    } else if (file.mimetype.startsWith('audio/')) {
+      fileType = 'audio';
+      folderPath = 'others';
+    } else if (file.mimetype === 'application/pdf') {
+      fileType = 'pdf';
+      folderPath = 'others';
+    } else {
+      fileType = 'other';
+      folderPath = 'others';
+    }
+
+    // Create the relative path for storage
+    const relativePath = `${folderPath}/${path.basename(file.path)}`;
 
     const lecture = await Lecture.create({
       title,
       description,
-      file: filePath, // Store only the relative path
+      file: relativePath,
       fileType,
       course: courseId
     });
+
+    // Create notification
+    try {
+      await createNotification(
+        "lecture",
+        "New Lecture Added",
+        `New lecture "${title}" has been added to the course "${course.title}"`,
+        lecture._id,
+        req.user._id
+      );
+    } catch (notificationError) {
+      console.error("Error creating notification:", notificationError);
+    }
 
     res.status(201).json({
       success: true,
       message: "Lecture added successfully",
       lecture
     });
+
   } catch (error) {
-    console.error("Error adding lecture:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error adding lecture",
-      error: error.message
-    });
+    if (req.file) {
+      try {
+        await fs.promises.unlink(req.file.path);
+      } catch (unlinkError) {
+        console.error("Error deleting file:", unlinkError);
+      }
+    }
+    throw error;
   }
 });
+
+export const createCourse = async (req, res) => {
+  try {
+    // Create the course
+    const course = await Courses.create(req.body);
+
+    res.status(201).json({
+      success: true,
+      data: course,
+      message: 'Course created successfully'
+    });
+  } catch (error) {
+    console.error('Error creating course:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create course'
+    });
+  }
+};

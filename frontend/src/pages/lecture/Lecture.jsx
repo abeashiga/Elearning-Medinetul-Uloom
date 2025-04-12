@@ -6,7 +6,8 @@ import { server } from "../../config";
 import Loading from "../../components/Loading";
 import toast from "react-hot-toast";
 import { TiTick } from "react-icons/ti";
-import { FaFilePdf, FaFileWord, FaFilePowerpoint, FaFileAudio, FaPlay, FaDownload, FaExpand } from "react-icons/fa";
+import { FaFilePdf, FaFileWord, FaFilePowerpoint, FaFileAudio, FaPlay, FaDownload, FaExpand, FaEdit, FaTrash } from "react-icons/fa";
+import EditLectureModal from '../../components/EditLectureModal';
 
 const Lecture = ({ user }) => {
   const [lectures, setLectures] = useState([]);
@@ -28,8 +29,16 @@ const Lecture = ({ user }) => {
   const [progressPercentage, setProgressPercentage] = useState(0);
   const [currentLecture, setCurrentLecture] = useState(null);
   const [hasMarkedProgress, setHasMarkedProgress] = useState(false);
+  const [editingLecture, setEditingLecture] = useState(null);
 
   useEffect(() => {
+    // Validate course ID is available
+    if (!params.id) {
+      toast.error("Course ID is missing");
+      navigate("/dashboard"); // or wherever you want to redirect
+      return;
+    }
+
     if (user && user.role !== "admin" && !user.subscription.includes(params.id)) {
       toast.error("You need to enroll in this course to access lectures");
       navigate("/");
@@ -50,6 +59,24 @@ const Lecture = ({ user }) => {
       setHasMarkedProgress(true);
     }
   }, [lecture?._id]);
+
+  useEffect(() => {
+    if (lecture?.file && lecture.fileType === 'video') {
+      const cleanPath = lecture.file
+        .split('\\')
+        .join('/')
+        .replace(/^\/+/, '')
+        .replace(/^uploads\//, '');
+      const fileUrl = `${server}/uploads/${cleanPath}`;
+      
+      checkVideoUrl(fileUrl).then(isValid => {
+        if (!isValid) {
+          console.error('Video URL is not accessible:', fileUrl);
+          toast.error('Video file is not accessible');
+        }
+      });
+    }
+  }, [lecture]);
 
   async function fetchLectures() {
     try {
@@ -84,8 +111,16 @@ const Lecture = ({ user }) => {
 
   const changeFileHandler = (e) => {
     const file = e.target.files[0];
-    const reader = new FileReader();
+    
+    // Check file size (e.g., 100MB limit)
+    const maxSize = 100 * 1024 * 1024; // 100MB in bytes
+    if (file.size > maxSize) {
+      toast.error("File is too large. Maximum size is 100MB");
+      e.target.value = null; // Reset file input
+      return;
+    }
 
+    const reader = new FileReader();
     reader.readAsDataURL(file);
 
     reader.onloadend = () => {
@@ -95,15 +130,38 @@ const Lecture = ({ user }) => {
   };
 
   const submitHandler = async (e) => {
-    setBtnLoading(true);
     e.preventDefault();
-    const myForm = new FormData();
+    setBtnLoading(true);
 
-    myForm.append("title", title);
-    myForm.append("description", description);
+    // Validate course ID
+    if (!params.id) {
+      toast.error("Course ID is missing");
+      setBtnLoading(false);
+      return;
+    }
+
+    // Validate form inputs
+    if (!title.trim() || !description.trim() || !file) {
+      toast.error("All fields are required");
+      setBtnLoading(false);
+      return;
+    }
+
+    const myForm = new FormData();
+    myForm.append("title", title.trim());
+    myForm.append("description", description.trim());
     myForm.append("file", file);
 
     try {
+      // Log the request details for debugging
+      console.log("Submitting lecture:", {
+        courseId: params.id,
+        title: title.trim(),
+        description: description.trim(),
+        fileSize: file.size,
+        fileType: file.type
+      });
+
       const { data } = await axios.post(
         `${server}/api/course/${params.id}`,
         myForm,
@@ -112,45 +170,54 @@ const Lecture = ({ user }) => {
             token: localStorage.getItem("token"),
             "Content-Type": "multipart/form-data",
           },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            console.log(`Upload Progress: ${percentCompleted}%`);
+          },
         }
       );
 
       if (data.success) {
         toast.success(data.message);
-        setBtnLoading(false);
         setShow(false);
         
-        // First fetch the updated lectures
-        await fetchLectures();
-        
-        // Force progress recalculation
-        const totalLectures = lectures.length + 1; // Add 1 for the new lecture
-        const completedLectures = progress[0]?.completedLectures?.length || 0;
-        const newPercentage = Math.min(Math.round((completedLectures / totalLectures) * 100), 100);
-        
-        // Update progress states immediately
-        setProgressPercentage(newPercentage);
-        document.documentElement.style.setProperty('--progress-percentage', newPercentage);
-        
-        // Then fetch the updated progress from server
-        await fetchProgress();
-        
+        // Reset form
         setTitle("");
         setDescription("");
         setFile("");
         setFilePrev("");
+        
+        // Refresh lectures
+        await fetchLectures();
+        
+        // Update progress if needed
+        if (lectures.length > 0) {
+          await fetchProgress();
+        }
       } else {
         throw new Error(data.message || "Failed to add lecture");
       }
     } catch (error) {
       console.error("Error adding lecture:", error);
-      toast.error(error.response?.data?.message || "Failed to add lecture");
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          "Failed to add lecture";
+      toast.error(errorMessage);
+      
+      if (error.response?.status === 413) {
+        toast.error("File is too large. Please try a smaller file.");
+      } else if (error.response?.status === 500) {
+        toast.error("Server error. Please try again later.");
+      }
+    } finally {
       setBtnLoading(false);
     }
   };
 
   const deleteHandler = async (id) => {
-    if (confirm("Are you sure you want to delete this lecture")) {
+    if (window.confirm("Are you sure you want to delete this lecture?")) {
       try {
         const { data } = await axios.delete(`${server}/api/lecture/${id}`, {
           headers: {
@@ -161,7 +228,8 @@ const Lecture = ({ user }) => {
         toast.success(data.message);
         fetchLectures();
       } catch (error) {
-        toast.error(error.response.data.message);
+        console.error("Delete error:", error);
+        toast.error(error.response?.data?.message || "Error deleting lecture");
       }
     }
   };
@@ -252,61 +320,53 @@ const Lecture = ({ user }) => {
   };
 
   const renderFilePreview = () => {
-    if (!lecture.file) return null;
+    if (!lecture?.file) return null;
 
-    // Clean the file path to remove any system paths and ensure correct format
-    const cleanPath = lecture.file.replace(/^.*?uploads[\\/]/, '');
-    const fileUrl = `${server}/uploads/${cleanPath}`;
-    const encodedFileUrl = encodeURIComponent(fileUrl);
+    // Helper function to get clean URL
+    const getFileUrl = (filePath) => {
+      const cleanPath = filePath
+        .replace(/\\/g, '/') // Replace Windows backslashes
+        .replace(/^\/+/, '') // Remove leading slashes
+        .replace(/^uploads\//, ''); // Remove 'uploads/' if present
+      
+      return `${server}/uploads/${cleanPath}`;
+    };
 
     switch (lecture.fileType) {
       case 'video':
+        const videoUrl = getFileUrl(lecture.file);
         return (
           <div className="video-player">
             <div className="file-header">
               <FaPlay className="file-icon" />
               <div className="file-info">
                 <h3>{lecture.title}</h3>
-                <p>Video File</p>
+                <p>Video Lecture</p>
               </div>
             </div>
             <div className="video-content">
               <video
-                src={fileUrl}
-                width="100%"
+                key={videoUrl}
                 controls
-                controlsList="nodownload noremoteplayback"
-                disablePictureInPicture
-                disableRemotePlayback
-                preload="metadata"
+                controlsList="nodownload"
+                playsInline
+                className="lecture-video"
                 onError={(e) => {
-                  console.error("Video loading error:", e);
-                  toast.error("Error loading video. Please try again.");
+                  console.error('Video loading error:', {
+                    error: e,
+                    src: videoUrl,
+                    videoElement: e.target
+                  });
                 }}
-              />
-            </div>
-            <div className="video-actions">
-              <a href={fileUrl} className="btn btn-download" download>
-                <FaDownload /> Download
-              </a>
-              <button className="btn btn-fullscreen" onClick={() => {
-                const video = document.querySelector('video');
-                if (video) {
-                  if (video.requestFullscreen) {
-                    video.requestFullscreen();
-                  } else if (video.webkitRequestFullscreen) {
-                    video.webkitRequestFullscreen();
-                  } else if (video.msRequestFullscreen) {
-                    video.msRequestFullscreen();
-                  }
-                }
-              }}>
-                <FaExpand /> Fullscreen
-              </button>
+              >
+                <source src={videoUrl} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
             </div>
           </div>
         );
       case 'audio':
+        const audioUrl = getFileUrl(lecture.file);
         return (
           <div className="audio-player">
             <div className="file-header">
@@ -318,7 +378,7 @@ const Lecture = ({ user }) => {
             </div>
             <div className="audio-content">
               <audio
-                src={fileUrl}
+                src={audioUrl}
                 controls
                 preload="metadata"
                 onError={(e) => {
@@ -328,16 +388,17 @@ const Lecture = ({ user }) => {
               />
             </div>
             <div className="audio-actions">
-              <a href={fileUrl} className="btn btn-download" download>
+              <a href={audioUrl} className="btn btn-download" download>
                 <FaDownload /> Download
               </a>
-              <button className="btn btn-fullscreen" onClick={() => window.open(fileUrl, '_blank')}>
+              <button className="btn btn-fullscreen" onClick={() => window.open(audioUrl, '_blank')}>
                 <FaExpand /> Fullscreen
               </button>
             </div>
           </div>
         );
       case 'pdf':
+        const pdfUrl = getFileUrl(lecture.file);
         return (
           <div className="pdf-viewer">
             <div className="file-header">
@@ -349,7 +410,7 @@ const Lecture = ({ user }) => {
             </div>
             <div className="file-content">
               <embed
-                src={`${fileUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
                 type="application/pdf"
                 width="100%"
                 height="100%"
@@ -361,16 +422,17 @@ const Lecture = ({ user }) => {
               </div>
             </div>
             <div className="file-actions">
-              <a href={fileUrl} className="btn btn-download" download>
+              <a href={pdfUrl} className="btn btn-download" download>
                 <FaDownload /> Download
               </a>
-              <button className="btn btn-fullscreen" onClick={() => window.open(fileUrl, '_blank')}>
+              <button className="btn btn-fullscreen" onClick={() => window.open(pdfUrl, '_blank')}>
                 <FaExpand /> Fullscreen
               </button>
             </div>
           </div>
         );
       case 'ppt':
+        const pptUrl = getFileUrl(lecture.file);
         return (
           <div className="ppt-viewer">
             <div className="file-header">
@@ -382,7 +444,7 @@ const Lecture = ({ user }) => {
             </div>
             <div className="file-content">
               <iframe
-                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodedFileUrl}&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=False&wdToolbar=False&wdHeader=False&wdMenubar=False`}
+                src={`https://view.officeapps.live.com/op/embed.aspx?src=${pptUrl}&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=False&wdToolbar=False&wdHeader=False&wdMenubar=False`}
                 title="PowerPoint Viewer"
                 width="100%"
                 height="100%"
@@ -395,16 +457,17 @@ const Lecture = ({ user }) => {
               </div>
             </div>
             <div className="file-actions">
-              <a href={fileUrl} className="btn btn-download" download>
+              <a href={pptUrl} className="btn btn-download" download>
                 <FaDownload /> Download
               </a>
-              <button className="btn btn-fullscreen" onClick={() => window.open(`https://view.officeapps.live.com/op/embed.aspx?src=${encodedFileUrl}`, '_blank')}>
+              <button className="btn btn-fullscreen" onClick={() => window.open(`https://view.officeapps.live.com/op/embed.aspx?src=${pptUrl}`, '_blank')}>
                 <FaExpand /> Fullscreen
               </button>
             </div>
           </div>
         );
       case 'doc':
+        const docUrl = getFileUrl(lecture.file);
         return (
           <div className="doc-viewer">
             <div className="file-header">
@@ -416,7 +479,7 @@ const Lecture = ({ user }) => {
             </div>
             <div className="file-content">
               <iframe
-                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodedFileUrl}&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=False&wdToolbar=False&wdHeader=False&wdMenubar=False`}
+                src={`https://view.officeapps.live.com/op/embed.aspx?src=${docUrl}&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=False&wdToolbar=False&wdHeader=False&wdMenubar=False`}
                 title="Word Viewer"
                 width="100%"
                 height="100%"
@@ -429,10 +492,10 @@ const Lecture = ({ user }) => {
               </div>
             </div>
             <div className="file-actions">
-              <a href={fileUrl} className="btn btn-download" download>
+              <a href={docUrl} className="btn btn-download" download>
                 <FaDownload /> Download
               </a>
-              <button className="btn btn-fullscreen" onClick={() => window.open(`https://view.officeapps.live.com/op/embed.aspx?src=${encodedFileUrl}`, '_blank')}>
+              <button className="btn btn-fullscreen" onClick={() => window.open(`https://view.officeapps.live.com/op/embed.aspx?src=${docUrl}`, '_blank')}>
                 <FaExpand /> Fullscreen
               </button>
             </div>
@@ -440,6 +503,34 @@ const Lecture = ({ user }) => {
         );
       default:
         return null;
+    }
+  };
+
+  const handleEditClick = (lecture) => {
+    setEditingLecture(lecture);
+  };
+
+  const handleEditClose = () => {
+    setEditingLecture(null);
+  };
+
+  const handleEditUpdate = () => {
+    fetchLectures();
+    setEditingLecture(null);
+  };
+
+  const checkVideoUrl = async (url) => {
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      console.log('Video URL check:', {
+        url,
+        status: response.status,
+        contentType: response.headers.get('content-type')
+      });
+      return response.ok;
+    } catch (error) {
+      console.error('Error checking video URL:', error);
+      return false;
     }
   };
 
@@ -546,24 +637,46 @@ const Lecture = ({ user }) => {
                     <p>This course is currently being prepared. Please check back later for content.</p>
                   </div>
                 ) : (
-                  lectures.map((lec) => (
+                  lectures.map((item) => (
                     <div
-                      key={lec._id}
+                      key={item._id}
                       className={`lecture-item ${
-                        currentLecture?._id === lec._id ? "active" : ""
-                      } ${progress[0]?.completedLectures.includes(lec._id) ? "completed" : ""}`}
+                        currentLecture?._id === item._id ? "active" : ""
+                      } ${progress[0]?.completedLectures.includes(item._id) ? "completed" : ""}`}
                       onClick={async () => {
-                        setCurrentLecture(lec);
+                        setCurrentLecture(item);
                         setHasMarkedProgress(false);
-                        await fetchLecture(lec._id);
+                        await fetchLecture(item._id);
                       }}
                     >
                       <div className="lecture-info">
-                        <span className="lecture-title">{lec.title}</span>
-                        <span className="lecture-duration">{lec.duration}</span>
+                        <span className="lecture-title">{item.title}</span>
+                        <span className="lecture-duration">{item.duration}</span>
                       </div>
-                      {progress[0]?.completedLectures.includes(lec._id) && (
+                      {progress[0]?.completedLectures.includes(item._id) && (
                         <span className="completion-icon">✓</span>
+                      )}
+                      {user && user.role === "admin" && (
+                        <div className="lecture-actions">
+                          <button
+                            className="edit-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditClick(item);
+                            }}
+                          >
+                            <FaEdit />
+                          </button>
+                          <button
+                            className="delete-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteHandler(item._id);
+                            }}
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
                       )}
                     </div>
                   ))
@@ -571,6 +684,14 @@ const Lecture = ({ user }) => {
               </div>
             </div>
           </div>
+
+          {editingLecture && (
+            <EditLectureModal
+              lecture={editingLecture}
+              onClose={handleEditClose}
+              onUpdate={handleEditUpdate}
+            />
+          )}
         </>
       )}
     </>

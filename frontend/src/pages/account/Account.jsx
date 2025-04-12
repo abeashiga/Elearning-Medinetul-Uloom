@@ -55,6 +55,7 @@ const Account = ({ user }) => {
 
                 {/* Profile Options */}
                 <div className="profile-options">
+                {user.role === "user" && (
                   <Link 
                     to={"/dashboard"}
                     className="profile-option"
@@ -62,6 +63,7 @@ const Account = ({ user }) => {
                     <MdLibraryBooks className="option-icon" />
                     <span>My Courses</span>
                   </Link>
+                )}
 
                   {user.role === "admin" && (
                     <Link 

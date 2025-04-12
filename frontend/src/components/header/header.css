@@ -29,6 +29,14 @@
   color: var(--primary-color);
 }
 
+.header-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  margin: 0 var(--spacing-lg);
+}
+
 .main-nav {
   display: flex;
   align-items: center;
@@ -99,14 +107,14 @@
 
 .tooltip-arrow {
   position: absolute;
-  top: -6px;
+  top: 100%;
   left: 50%;
   transform: translateX(-50%);
   width: 0;
   height: 0;
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
-  border-bottom: 6px solid #343a40;
+  border-top: 6px solid #343a40;
 }
 
 /* Responsive Design */
@@ -119,17 +127,20 @@
   .main-nav {
     width: 100%;
     justify-content: center;
-    flex-wrap: wrap;
+  }
+  
+  .header-center {
+    margin: var(--spacing-sm) 0;
   }
 }
 
 @media (max-width: 576px) {
   .main-nav {
-    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    justify-content: center;
   }
   
   .nav-link {
-    padding: var(--spacing-xs);
     font-size: 0.9rem;
   }
 }

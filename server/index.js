@@ -8,42 +8,10 @@ import mongoose from "mongoose";
 import { User } from "./models/User.js";
 import path from "path";
 import { fileURLToPath } from "url";
-import multer from "multer";
 import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = path.join(__dirname, 'uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image/')) {
-    cb(null, true);
-  } else {
-    cb(new Error('Not an image! Please upload only images.'), false);
-  }
-};
-
-export const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  }
-});
 
 dotenv.config();
 const app = express();
@@ -51,15 +19,13 @@ const app = express();
 // Middlewares
 app.use(express.json());
 app.use(cors({
-  origin: true, // Allow all origins in development
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "token", "Accept", "Range"],
-  exposedHeaders: ["Content-Range", "Accept-Ranges", "Content-Length", "Content-Type"],
-  maxAge: 600 // Cache preflight requests for 10 minutes
+  origin: ['http://localhost:5173', 'http://localhost:5174'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'token'],
+  credentials: true
 }));
 
-// Add error handling middleware for CORS preflight
+// Add explicit OPTIONS handling for preflight requests
 app.options('*', cors());
 
 const port = process.env.PORT || 5000;
@@ -80,31 +46,22 @@ app.get("/", (req, res) => {
 });
 
 // Static files with proper CORS headers
-app.use("/uploads", (req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Range, Content-Type, Authorization, token");
-  res.header("Access-Control-Expose-Headers", "Content-Range, Accept-Ranges, Content-Length");
-  res.header("Access-Control-Allow-Credentials", "true");
+app.use('/uploads', (req, res, next) => {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET');
+  res.setHeader('Accept-Ranges', 'bytes');
   
-  // Set appropriate content type based on file extension
+  // Set content type based on file extension and path
   const ext = path.extname(req.path).toLowerCase();
-  if (ext === '.jpg' || ext === '.jpeg') {
-    res.header("Content-Type", "image/jpeg");
-  } else if (ext === '.png') {
-    res.header("Content-Type", "image/png");
-  } else if (ext === '.gif') {
-    res.header("Content-Type", "image/gif");
-  } else if (ext === '.mp4') {
-    res.header("Content-Type", "video/mp4");
-  } else if (ext === '.mp3' || ext === '.wav' || ext === '.ogg') {
-    res.header("Content-Type", "audio/mpeg");
+  const filePath = req.path.toLowerCase();
+  
+  if (filePath.includes('/lectures/') && ext === '.mp4') {
+    res.setHeader('Content-Type', 'video/mp4');
+  } else if (filePath.includes('/profiles/')) {
+    res.setHeader('Content-Type', 'image/jpeg');
   } else if (ext === '.pdf') {
-    res.header("Content-Type", "application/pdf");
-  } else if (ext === '.doc' || ext === '.docx') {
-    res.header("Content-Type", "application/msword");
-  } else if (ext === '.ppt' || ext === '.pptx') {
-    res.header("Content-Type", "application/vnd.ms-powerpoint");
+    res.setHeader('Content-Type', 'application/pdf');
   }
   
   next();
@@ -403,13 +360,15 @@ import courseRoutes from "./routes/course.js";
 import adminRoutes from "./routes/admin.js";
 import assessmentRoutes from "./routes/assessmentRoutes.js";
 import certificateRoutes from "./routes/certificateRoutes.js";
+import notificationRoutes from "./routes/notification.js";
 
 // Use other routes
-app.use("/api", userRoutes);
-app.use("/api", courseRoutes);
 app.use("/api", adminRoutes);
+app.use("/api", courseRoutes);
+app.use("/api", userRoutes);
 app.use("/api/assessment", assessmentRoutes);
 app.use("/api/certificate", certificateRoutes);
+app.use("/api", notificationRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

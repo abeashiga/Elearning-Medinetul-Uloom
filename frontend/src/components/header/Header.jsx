@@ -5,8 +5,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { MdAccountCircle } from "react-icons/md";
 import { UserData } from "../../context/UserContext";
 import { server } from "../../config";
+import Notification from "../Notification";
 
-const Header = ({ isAuth }) => {
+
+const Header = ({ isAuth}) => {
   const { user } = UserData();
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -19,6 +21,7 @@ const Header = ({ isAuth }) => {
               Medinatul-Uloom
             </Link>
           </div>
+
 
           <nav className="main-nav">
             <Link to="/" className="nav-link">Home</Link>
@@ -61,6 +64,7 @@ const Header = ({ isAuth }) => {
             ) : (
               <Link to="/login" className="nav-link">Login</Link>
             )}
+            {user && <Notification user={user} />}
           </nav>
         </div>
       </div>

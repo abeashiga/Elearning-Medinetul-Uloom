@@ -93,21 +93,25 @@ export const UserContextProvider = ({ children }) => {
 
   async function fetchUser() {
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
       const { data } = await axios.get(`${server}/api/me`, {
         headers: {
-          token: localStorage.getItem("token"),
-        },
+          token: token
+        }
       });
 
       if (data.success) {
         setIsAuth(true);
         setUser(data.user);
-        setLoading(false);
-      } else {
-        throw new Error(data.message || 'Failed to fetch user');
       }
     } catch (error) {
       console.error("Error fetching user:", error);
+    } finally {
       setLoading(false);
     }
   }

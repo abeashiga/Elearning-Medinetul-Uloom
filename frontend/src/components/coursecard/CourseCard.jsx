@@ -57,29 +57,31 @@ const CourseCard = ({ course }) => {
               )}
             </>
           ) : (
-            <button
-              onClick={() => navigate(`/course/study/${course._id}`)}
-              className="common-btn"
-            >
-              Study
-            </button>
+            <div className="admin-buttons">
+              <button
+                onClick={() => navigate(`/course/study/${course._id}`)}
+                className="common-btn"
+              >
+                Study
+              </button>
+              <button
+                onClick={() => navigate(`/admin/course/edit/${course._id}`)}
+                className="common-btn edit-btn"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => deleteHandler(course._id)}
+                className="common-btn delete-btn"
+              >
+                Delete
+              </button>
+            </div>
           )}
         </>
       ) : (
         <button onClick={() => navigate("/login")} className="common-btn">
           Get Started
-        </button>
-      )}
-
-      <br />
-
-      {user && user.role === "admin" && (
-        <button
-          onClick={() => deleteHandler(course._id)}
-          className="common-btn"
-          style={{ background: "red" }}
-        >
-          Delete
         </button>
       )}
     </div>
