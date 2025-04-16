@@ -655,3 +655,121 @@
   color: #6c757d;
   font-size: 1rem;
 }
+
+/* Add specific styles for the video player */
+.video-player {
+  margin: 20px 0;
+  padding: 20px;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  }
+
+  .file-header {
+    /* Styles inherited from common file viewer */
+    display: flex; /* Added for alignment */
+    align-items: center; /* Added for alignment */
+    margin-bottom: 15px; /* Added for spacing */
+    padding-bottom: 15px; /* Added for spacing */
+    border-bottom: 1px solid #eee; /* Added for separation */
+
+    .file-icon {
+      font-size: 28px; /* Added for consistency */
+      margin-right: 15px; /* Added for spacing */
+      padding: 10px; /* Added for consistency */
+      border-radius: 8px; /* Added for consistency */
+      transition: all 0.3s ease; /* Added for consistency */
+      color: #673ab7; /* Example color for video */
+      background-color: rgba(103, 58, 183, 0.1);
+    }
+
+     .file-info { /* Added to style title/description */
+        h3 {
+          margin: 0;
+          font-size: 18px;
+          font-weight: 600;
+          color: #2c3e50;
+        }
+
+        p {
+          margin: 5px 0 0;
+          font-size: 14px;
+          color: #666;
+        }
+      }
+  }
+
+  .video-content {
+    background-color: #000; /* Black background for video */
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    /* Remove fixed height, let video determine height */
+    /* height: 600px; */
+    width: 100%;
+    /* Maintain aspect ratio, e.g., 16:9 */
+    aspect-ratio: 16 / 9;
+    margin: 15px 0; /* Add some margin */
+  }
+
+  .lecture-video {
+    display: block; /* Prevent extra space below video */
+    width: 100%;
+    height: 100%; /* Fill the container */
+    object-fit: contain; /* Ensure entire video is visible */
+    border-radius: 8px; /* Match container radius */
+  }
+
+   /* Optional: Actions if needed for video */
+  .video-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+
+     /* Add styles for buttons if you include actions */
+     .btn {
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+
+        i {
+          font-size: 16px;
+        }
+      }
+
+      .btn-download {
+        background-color: #673ab7; /* Match icon color */
+        color: white;
+        border: none;
+
+        &:hover {
+          background-color: #5e35b1;
+          transform: translateY(-1px);
+        }
+      }
+
+      .btn-fullscreen {
+        background-color: #f8f9fa;
+        color: #2c3e50;
+        border: 1px solid #dee2e6;
+
+        &:hover {
+          background-color: #e9ecef;
+          transform: translateY(-1px);
+        }
+      }
+  }
+}
+/* End video player styles */
