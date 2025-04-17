@@ -9,9 +9,22 @@ const schema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  videoSource: {
+    type: String,
+    enum: ['local', 'youtube'],
+    default: 'local'
+  },
+  youtubeVideoId: {
+    type: String,
+    required: function() {
+      return this.videoSource === 'youtube';
+    }
+  },
   file: {
     type: String,
-    required: true,
+    required: function() {
+      return this.videoSource === 'local';
+    },
   },
   fileType: {
     type: String,

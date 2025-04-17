@@ -9,14 +9,14 @@ import {
 
 const router = express.Router();
 
-// Get all notifications
+// Get all notifications for the user
 router.get("/notifications", isAuth, getUserNotifications);
 
-// Mark single notification as read
-router.put("/notifications/:id", isAuth, markNotificationAsRead);
-
-// Mark all notifications as read
+// Mark all notifications as read (Specific route FIRST)
 router.put("/notifications/mark-all-read", isAuth, markAllNotificationsAsRead);
+
+// Mark single notification as read (Parameterized route AFTER specific one)
+router.put("/notifications/:id", isAuth, markNotificationAsRead);
 
 // Clear read notifications
 router.delete("/notifications/clear-read", isAuth, clearReadNotifications);

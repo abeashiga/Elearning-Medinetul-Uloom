@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import './notification.css';
 import { UserData } from '../context/UserContext';
 import { FaTrash, FaCheck } from 'react-icons/fa';
+//import mongoose from 'mongoose';
 
 const Notification = () => {
   const { user, isAuth } = UserData();
@@ -57,11 +58,21 @@ const Notification = () => {
         return;
       }
 
-      // Validate if id exists
+      // --- Enhanced Validation ---
       if (!id) {
-        toast.error('Invalid notification');
+        console.error('Mark as read attempt with missing ID.');
+        toast.error('Cannot mark notification as read (missing ID)');
         return;
       }
+      const objectIdRegex = /^[0-9a-fA-F]{24}$/;
+      if (!objectIdRegex.test(id)) {
+         console.error('Mark as read attempt with invalid ID format:', id);
+         toast.error('Cannot mark notification as read (invalid ID format)');
+         return;
+      }
+      // --- End Enhanced Validation ---
+
+      console.log("Attempting to mark notification as read. ID being sent:", id, typeof id);
 
       const { data } = await axios.put(
         `${server}/api/notifications/${id}`,
@@ -81,6 +92,9 @@ const Notification = () => {
       }
     } catch (error) {
       console.error('Error marking notification as read:', error);
+      if (error.response) {
+        console.error('Backend Error Response:', error.response.data);
+      }
       toast.error(error.response?.data?.message || 'Failed to mark notification as read');
     }
   };
@@ -105,7 +119,17 @@ const Notification = () => {
       );
       
       if (data.success) {
+        console.log("Mark all successful on backend. Refetching notifications..."); // Log before refetch
         await fetchNotifications(); // Refresh notifications
+        // ***** ADD THESE LOGS *****
+        console.log("Notifications refetched. Current unread count:", unreadCount);
+        // Use a functional update for setNotifications to guarantee access to latest state
+        setNotifications(currentNotifications => {
+            console.log("Notifications state after refetch:", currentNotifications);
+            return currentNotifications; // Return the same state just for logging
+        });
+        // *************************
+
         if (data.modifiedCount > 0) {
           toast.success(`Marked ${data.modifiedCount} notification${data.modifiedCount === 1 ? '' : 's'} as read`);
         } else {

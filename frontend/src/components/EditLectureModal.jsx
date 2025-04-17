@@ -1,19 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { server } from '../config';
 import toast from 'react-hot-toast';
 import './EditLectureModal.css';
 
 const EditLectureModal = ({ lecture, onClose, onUpdate }) => {
-  const [title, setTitle] = useState(lecture.title);
-  const [description, setDescription] = useState(lecture.description);
+  const [title, setTitle] = useState(lecture.title || '');
+  const [description, setDescription] = useState(lecture.description || '');
+  const [videoSource, setVideoSource] = useState(lecture.videoSource || 'local');
+  const [youtubeVideoId, setYoutubeVideoId] = useState(lecture.youtubeVideoId || '');
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    setTitle(lecture.title || '');
+    setDescription(lecture.description || '');
+    setVideoSource(lecture.videoSource || 'local');
+    setYoutubeVideoId(lecture.youtubeVideoId || '');
+    setFile(null);
+  }, [lecture]);
+
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFile(file);
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
     }
   };
 
@@ -25,8 +35,21 @@ const EditLectureModal = ({ lecture, onClose, onUpdate }) => {
       const formData = new FormData();
       formData.append('title', title);
       formData.append('description', description);
-      if (file) {
+      formData.append('videoSource', videoSource);
+
+      if (videoSource === 'youtube') {
+        if (!youtubeVideoId) {
+          toast.error("YouTube Video ID is required");
+          setLoading(false);
+          return;
+        }
+        formData.append('youtubeVideoId', youtubeVideoId);
+      } else if (file) {
         formData.append('file', file);
+      } else if (videoSource === 'local' && !lecture.file) {
+        toast.error("A file is required for local video source.");
+        setLoading(false);
+        return;
       }
 
       const { data } = await axios.put(
@@ -40,7 +63,7 @@ const EditLectureModal = ({ lecture, onClose, onUpdate }) => {
         }
       );
 
-      toast.success(data.message);
+      toast.success(data.message || "Lecture updated successfully");
       onUpdate();
       onClose();
     } catch (error) {
@@ -76,13 +99,47 @@ const EditLectureModal = ({ lecture, onClose, onUpdate }) => {
           </div>
 
           <div className="form-group">
-            <label>New File (optional):</label>
-            <input
-              type="file"
-              onChange={handleFileChange}
-              accept="video/*,audio/*,.pdf,.ppt,.pptx,.doc,.docx"
-            />
+            <label>Video Source:</label>
+            <select
+              value={videoSource}
+              onChange={(e) => {
+                setVideoSource(e.target.value);
+                if (e.target.value === 'youtube') setFile(null);
+                if (e.target.value === 'local') setYoutubeVideoId('');
+              }}
+              required
+            >
+              <option value="local">Local File</option>
+              <option value="youtube">YouTube Video</option>
+            </select>
           </div>
+
+          {videoSource === 'youtube' ? (
+            <div className="form-group">
+              <label>YouTube Video ID:</label>
+              <input
+                type="text"
+                value={youtubeVideoId}
+                onChange={(e) => setYoutubeVideoId(e.target.value)}
+                placeholder="e.g., dQw4w9WgXcQ (11 chars)"
+                required
+                minLength="11"
+                maxLength="11"
+              />
+            </div>
+          ) : (
+            <div className="form-group">
+              <label>New File (optional - leave blank to keep existing):</label>
+              <input
+                type="file"
+                onChange={handleFileChange}
+                accept="video/*,audio/*,.pdf,.ppt,.pptx,.doc,.docx"
+              />
+              {lecture.file && !file && (
+                <p className="current-file">Current: {lecture.file.split('/').pop()}</p>
+              )}
+            </div>
+          )}
 
           <div className="button-group">
             <button type="button" onClick={onClose} className="cancel-btn">

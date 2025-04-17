@@ -773,3 +773,20 @@
   }
 }
 /* End video player styles */
+
+.video-container {
+  position: relative;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  background: var(--background-white);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+}
+
+.help-text {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}

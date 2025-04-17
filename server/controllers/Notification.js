@@ -55,8 +55,10 @@ export const markNotificationAsRead = TryCatch(async (req, res) => {
 
   const { id } = req.params;
 
-  // Validate if id is a valid ObjectId
+  console.log("Backend received request to mark as read. ID from params:", id, typeof id);
+
   if (!mongoose.Types.ObjectId.isValid(id)) {
+    console.error(`Invalid ObjectId format detected on backend: "${id}"`);
     return res.status(400).json({
       success: false,
       message: "Invalid notification ID"
@@ -64,18 +66,19 @@ export const markNotificationAsRead = TryCatch(async (req, res) => {
   }
 
   const notification = await Notification.findOneAndUpdate(
-    { 
+    {
       _id: id,
-      recipient: req.user._id 
+      recipient: req.user._id
     },
     { read: true },
     { new: true }
   );
 
   if (!notification) {
+    console.warn(`Notification not found for ID: "${id}" and User: "${req.user._id}"`);
     return res.status(404).json({
       success: false,
-      message: "Notification not found"
+      message: "Notification not found or does not belong to user"
     });
   }
 
@@ -95,17 +98,19 @@ export const markAllNotificationsAsRead = TryCatch(async (req, res) => {
   }
 
   const result = await Notification.updateMany(
-    { 
+    {
       recipient: req.user._id,
       read: false
     },
     { read: true }
   );
 
+  console.log(`Mark all as read for user ${req.user._id}. Result:`, result);
+
   res.json({
     success: true,
     message: "All notifications marked as read",
-    modifiedCount: result.modifiedCount
+    modifiedCount: result.modifiedCount || 0
   });
 });
 

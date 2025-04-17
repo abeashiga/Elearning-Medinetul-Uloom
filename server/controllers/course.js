@@ -8,8 +8,7 @@ import { Progress } from "../models/Progress.js";
 import fs from "fs";
 import { createNotification } from "./Notification.js";
 import path from "path";
-
-
+import fsPromises from "fs/promises";
 
 export const getAllCourses = TryCatch(async (req, res) => {
   const courses = await Courses.find();
@@ -265,7 +264,7 @@ export const getYourProgress = TryCatch(async (req, res) => {
 export const addLecture = TryCatch(async (req, res) => {
   try {
     const courseId = req.params.id;
-    const { title, description } = req.body;
+    const { title, description, videoSource, youtubeVideoId } = req.body;
     const file = req.file;
 
     if (!courseId) {
@@ -286,61 +285,107 @@ export const addLecture = TryCatch(async (req, res) => {
       });
     }
 
-    if (!title || !description || !file) {
+    // Validate required fields based on video source
+    if (!title || !description) {
       if (file) await fs.promises.unlink(file.path);
       return res.status(400).json({
         success: false,
-        message: "All fields are required"
+        message: "Title and description are required"
       });
     }
 
-    // Determine file type and folder
-    let fileType;
-    let folderPath;
-    if (file.mimetype.startsWith('video/')) {
-      fileType = 'video';
-      folderPath = 'lectures';
-    } else if (file.mimetype.startsWith('audio/')) {
-      fileType = 'audio';
-      folderPath = 'others';
-    } else if (file.mimetype === 'application/pdf') {
-      fileType = 'pdf';
-      folderPath = 'others';
+    if (videoSource === 'youtube') {
+      if (!youtubeVideoId) {
+        return res.status(400).json({
+          success: false,
+          message: "YouTube Video ID is required"
+        });
+      }
+
+      const lecture = await Lecture.create({
+        title,
+        description,
+        videoSource: 'youtube',
+        youtubeVideoId,
+        fileType: 'video',
+        course: courseId
+      });
+
+      // Create notification
+      try {
+        await createNotification(
+          "lecture",
+          "New Lecture Added",
+          `New lecture "${title}" has been added to the course "${course.title}"`,
+          lecture._id,
+          req.user._id
+        );
+      } catch (notificationError) {
+        console.error("Error creating notification:", notificationError);
+      }
+
+      return res.status(201).json({
+        success: true,
+        message: "Lecture added successfully",
+        lecture
+      });
     } else {
-      fileType = 'other';
-      folderPath = 'others';
+      // Handle local file upload
+      if (!file) {
+        return res.status(400).json({
+          success: false,
+          message: "File is required for local upload"
+        });
+      }
+
+      // Determine file type and folder
+      let fileType;
+      let folderPath;
+      if (file.mimetype.startsWith('video/')) {
+        fileType = 'video';
+        folderPath = 'lectures';
+      } else if (file.mimetype.startsWith('audio/')) {
+        fileType = 'audio';
+        folderPath = 'others';
+      } else if (file.mimetype === 'application/pdf') {
+        fileType = 'pdf';
+        folderPath = 'others';
+      } else {
+        fileType = 'other';
+        folderPath = 'others';
+      }
+
+      // Create the relative path for storage
+      const relativePath = `${folderPath}/${path.basename(file.path)}`;
+
+      const lecture = await Lecture.create({
+        title,
+        description,
+        file: relativePath,
+        fileType,
+        videoSource: 'local',
+        course: courseId
+      });
+
+      // Create notification
+      try {
+        await createNotification(
+          "lecture",
+          "New Lecture Added",
+          `New lecture "${title}" has been added to the course "${course.title}"`,
+          lecture._id,
+          req.user._id
+        );
+      } catch (notificationError) {
+        console.error("Error creating notification:", notificationError);
+      }
+
+      return res.status(201).json({
+        success: true,
+        message: "Lecture added successfully",
+        lecture
+      });
     }
-
-    // Create the relative path for storage
-    const relativePath = `${folderPath}/${path.basename(file.path)}`;
-
-    const lecture = await Lecture.create({
-      title,
-      description,
-      file: relativePath,
-      fileType,
-      course: courseId
-    });
-
-    // Create notification
-    try {
-      await createNotification(
-        "lecture",
-        "New Lecture Added",
-        `New lecture "${title}" has been added to the course "${course.title}"`,
-        lecture._id,
-        req.user._id
-      );
-    } catch (notificationError) {
-      console.error("Error creating notification:", notificationError);
-    }
-
-    res.status(201).json({
-      success: true,
-      message: "Lecture added successfully",
-      lecture
-    });
-
   } catch (error) {
     if (req.file) {
       try {
@@ -371,3 +416,85 @@ export const createCourse = async (req, res) => {
     });
   }
 };
+
+export const updateLecture = TryCatch(async (req, res) => {
+  const lectureId = req.params.id;
+  const { title, description, videoSource, youtubeVideoId } = req.body;
+  const file = req.file;
+  let oldFilePath = null;
+
+  try {
+    const lecture = await Lecture.findById(lectureId);
+
+    if (!lecture) {
+      if (file) await fsPromises.unlink(file.path);
+      return res.status(404).json({ success: false, message: "Lecture not found" });
+    }
+
+    if (lecture.videoSource === 'local' && lecture.file) {
+       if (videoSource === 'youtube' || (videoSource === 'local' && file)) {
+          oldFilePath = path.join(process.cwd(), 'server', lecture.file);
+       }
+    }
+
+    lecture.title = title || lecture.title;
+    lecture.description = description || lecture.description;
+    lecture.videoSource = videoSource || lecture.videoSource;
+
+    if (lecture.videoSource === 'youtube') {
+      if (!youtubeVideoId) {
+         if (file) await fsPromises.unlink(file.path);
+         return res.status(400).json({ success: false, message: "YouTube Video ID is required for YouTube source" });
+      }
+      lecture.youtubeVideoId = youtubeVideoId;
+      lecture.file = undefined;
+      lecture.fileType = 'video';
+    } else if (lecture.videoSource === 'local') {
+      if (file) {
+        lecture.youtubeVideoId = undefined;
+
+        let fileType;
+        let folderPath;
+        if (file.mimetype.startsWith('video/')) {
+          fileType = 'video'; folderPath = 'uploads/lectures';
+        } else if (file.mimetype.startsWith('audio/')) {
+          fileType = 'audio'; folderPath = 'uploads/others';
+        } else if (file.mimetype === 'application/pdf') {
+          fileType = 'pdf'; folderPath = 'uploads/others';
+        } else {
+          fileType = 'other'; folderPath = 'uploads/others';
+        }
+        await fsPromises.mkdir(path.join(process.cwd(), 'server', folderPath), { recursive: true });
+        const relativePath = path.join(folderPath, path.basename(file.path)).replace(/\\/g, '/');
+
+        lecture.file = relativePath;
+        lecture.fileType = fileType;
+
+      } else if (!lecture.file) {
+         return res.status(400).json({ success: false, message: "File is required for local source" });
+      }
+    } else {
+       if (file) await fsPromises.unlink(file.path);
+       return res.status(400).json({ success: false, message: "Invalid video source specified" });
+    }
+
+    await lecture.save();
+
+    if (oldFilePath) {
+       try {
+          await fsPromises.unlink(oldFilePath);
+          console.log("Deleted old file:", oldFilePath);
+       } catch (unlinkError) {
+          console.error("Error deleting old file:", oldFilePath, unlinkError);
+       }
+    }
+
+    res.json({ success: true, message: "Lecture updated successfully", lecture });
+
+  } catch (error) {
+    if (file) {
+       try { await fsPromises.unlink(file.path); } catch (unlinkError) { console.error("Error deleting uploaded file on failure:", unlinkError); }
+    }
+    throw error;
+  }
+});
