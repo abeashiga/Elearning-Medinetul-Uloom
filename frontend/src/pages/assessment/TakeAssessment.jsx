@@ -23,11 +23,15 @@ const TakeAssessment = () => {
     isPassed: false,
     score: 0
   });
+  const [lastAttemptTime, setLastAttemptTime] = useState(null);
+  const [canRetry, setCanRetry] = useState(true);
+  const [retryTimeLeft, setRetryTimeLeft] = useState(0);
 
   useEffect(() => {
     checkLectureProgress();
     fetchAssessment();
     checkAssessmentStatus();
+    checkRetryStatus();
   }, [courseId]);
 
   useEffect(() => {
@@ -46,6 +50,23 @@ const TakeAssessment = () => {
       return () => clearInterval(timer);
     }
   }, [timeLeft]);
+
+  useEffect(() => {
+    if (retryTimeLeft > 0) {
+      const timer = setInterval(() => {
+        setRetryTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            setCanRetry(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [retryTimeLeft]);
 
   const checkLectureProgress = async () => {
     try {
@@ -111,6 +132,24 @@ const TakeAssessment = () => {
     }
   };
 
+  const checkRetryStatus = () => {
+    const lastAttempt = localStorage.getItem(`assessment_${courseId}_lastAttempt`);
+    if (lastAttempt) {
+      const timePassed = Date.now() - parseInt(lastAttempt);
+      const waitTime = 5 * 60 * 1000; // 10 minutes in milliseconds
+      
+      if (timePassed < waitTime) {
+        setCanRetry(false);
+        setRetryTimeLeft(Math.ceil((waitTime - timePassed) / 1000));
+      } else {
+        setCanRetry(true);
+        setRetryTimeLeft(0);
+        // Clear the last attempt time if 10 minutes have passed
+        localStorage.removeItem(`assessment_${courseId}_lastAttempt`);
+      }
+    }
+  };
+
   const fetchAssessment = async () => {
     try {
       const { data } = await axios.get(
@@ -162,15 +201,26 @@ const TakeAssessment = () => {
       );
 
       if (data.success) {
+        if (!data.passed) {
+          // Store the attempt time for failed attempts
+          localStorage.setItem(`assessment_${courseId}_lastAttempt`, Date.now().toString());
+          setLastAttemptTime(Date.now());
+          setCanRetry(false);
+          setRetryTimeLeft(600); // 10 minutes in seconds
+        }
+
         toast.success(
           `Assessment submitted! Score: ${data.score}% (${
             data.passed ? "Passed" : "Failed"
           })`
         );
-        // Always redirect to study page after submission
-        setTimeout(() => {
-          navigate(`/course/study/${courseId}`);
-        }, 2000);
+        
+        // Only redirect if passed
+        if (data.passed) {
+          setTimeout(() => {
+            navigate(`/course/study/${courseId}`);
+          }, 2000);
+        }
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to submit assessment");
@@ -237,23 +287,53 @@ const TakeAssessment = () => {
   }
 
   // If user has already attempted the assessment, show a message
-  if (hasAttempted) {
+  if (hasAttempted && !assessmentStatus.isPassed) {
     return (
       <div className="container py-5">
         <div className="card shadow-sm">
           <div className="card-body text-center">
-            {assessmentStatus.isPassed ? (
-              <FaCheckCircle className="display-1 text-success mb-3" />
-            ) : (
-              <FaTimesCircle className="display-1 text-danger mb-3" />
-            )}
-            <h2 className="card-title mb-3">
-              {assessmentStatus.isPassed ? "Assessment Passed!" : "Assessment Not Passed"}
-            </h2>
+            <FaTimesCircle className="display-1 text-danger mb-3" />
+            <h2 className="card-title mb-3">Assessment Not Passed</h2>
             <p className="card-text mb-4">
-              {assessmentStatus.isPassed
-                ? "Congratulations! You have successfully passed the assessment."
-                : `You scored ${assessmentStatus.score}%. You need to score at least 50% to pass.`}
+              You scored {assessmentStatus.score}%. You need to score at least 50% to pass.
+            </p>
+            {!canRetry ? (
+              <div className="retry-timer mb-4">
+                <p className="text-warning">
+                  You can retry in: {Math.floor(retryTimeLeft / 60)}:
+                  {(retryTimeLeft % 60).toString().padStart(2, '0')}
+                </p>
+              </div>
+            ) : (
+              <button
+                className="btn btn-primary me-3"
+                onClick={() => {
+                  setHasAttempted(false);
+                  fetchAssessment();
+                }}
+              >
+                Retry Assessment
+              </button>
+            )}
+            <button
+              className="btn btn-secondary"
+              onClick={() => navigate(`/course/study/${courseId}`)}
+            >
+              Return to Course
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  } else if (hasAttempted && assessmentStatus.isPassed) {
+    return (
+      <div className="container py-5">
+        <div className="card shadow-sm">
+          <div className="card-body text-center">
+            <FaCheckCircle className="display-1 text-success mb-3" />
+            <h2 className="card-title mb-3">Assessment Passed!</h2>
+            <p className="card-text mb-4">
+              Congratulations! You have successfully passed the assessment.
             </p>
             <button
               className="btn btn-primary"

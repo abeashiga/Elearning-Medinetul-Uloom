@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { server } from "../../config";
-
+import { CourseData } from "../../context/CourseContext";
 
 const categories = [
   "Web Development",
@@ -16,6 +16,7 @@ const categories = [
 
 const AddCourse = () => {
   const navigate = useNavigate();
+  const { fetchCourses } = CourseData();
   
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -67,6 +68,7 @@ const AddCourse = () => {
         }
       );
 
+      await fetchCourses(); // Fetch updated course list
       toast.success(data.message);
       navigate("/admin/courses");
     } catch (error) {

@@ -664,115 +664,108 @@
   background-color: #fff;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
-
-  &:hover {
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-  }
-
-  .file-header {
-    /* Styles inherited from common file viewer */
-    display: flex; /* Added for alignment */
-    align-items: center; /* Added for alignment */
-    margin-bottom: 15px; /* Added for spacing */
-    padding-bottom: 15px; /* Added for spacing */
-    border-bottom: 1px solid #eee; /* Added for separation */
-
-    .file-icon {
-      font-size: 28px; /* Added for consistency */
-      margin-right: 15px; /* Added for spacing */
-      padding: 10px; /* Added for consistency */
-      border-radius: 8px; /* Added for consistency */
-      transition: all 0.3s ease; /* Added for consistency */
-      color: #673ab7; /* Example color for video */
-      background-color: rgba(103, 58, 183, 0.1);
-    }
-
-     .file-info { /* Added to style title/description */
-        h3 {
-          margin: 0;
-          font-size: 18px;
-          font-weight: 600;
-          color: #2c3e50;
-        }
-
-        p {
-          margin: 5px 0 0;
-          font-size: 14px;
-          color: #666;
-        }
-      }
-  }
-
-  .video-content {
-    background-color: #000; /* Black background for video */
-    border-radius: 8px;
-    overflow: hidden;
-    position: relative;
-    /* Remove fixed height, let video determine height */
-    /* height: 600px; */
-    width: 100%;
-    /* Maintain aspect ratio, e.g., 16:9 */
-    aspect-ratio: 16 / 9;
-    margin: 15px 0; /* Add some margin */
-  }
-
-  .lecture-video {
-    display: block; /* Prevent extra space below video */
-    width: 100%;
-    height: 100%; /* Fill the container */
-    object-fit: contain; /* Ensure entire video is visible */
-    border-radius: 8px; /* Match container radius */
-  }
-
-   /* Optional: Actions if needed for video */
-  .video-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #eee;
-
-     /* Add styles for buttons if you include actions */
-     .btn {
-        padding: 8px 16px;
-        border-radius: 6px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        cursor: pointer;
-
-        i {
-          font-size: 16px;
-        }
-      }
-
-      .btn-download {
-        background-color: #673ab7; /* Match icon color */
-        color: white;
-        border: none;
-
-        &:hover {
-          background-color: #5e35b1;
-          transform: translateY(-1px);
-        }
-      }
-
-      .btn-fullscreen {
-        background-color: #f8f9fa;
-        color: #2c3e50;
-        border: 1px solid #dee2e6;
-
-        &:hover {
-          background-color: #e9ecef;
-          transform: translateY(-1px);
-        }
-      }
-  }
 }
-/* End video player styles */
+
+.video-player:hover {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.video-player .file-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.video-player .file-header .file-icon {
+  font-size: 28px;
+  margin-right: 15px;
+  padding: 10px;
+  border-radius: 8px;
+  color: #673ab7;
+  background-color: rgba(103, 58, 183, 0.1);
+}
+
+.video-player .file-header .file-info h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.video-player .file-header .file-info p {
+  margin: 5px 0 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.video-player .video-content {
+  background-color: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin: 15px 0;
+}
+
+.video-player .lecture-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.video-player .video-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.video-player .video-actions .btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.video-player .video-actions .btn-success {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+}
+
+.video-player .video-actions .btn-success:hover {
+  background-color: #45a049;
+  transform: translateY(-1px);
+}
+
+.video-player .video-actions .btn-fullscreen {
+  background-color: #f8f9fa;
+  color: #2c3e50;
+  border: 1px solid #dee2e6;
+}
+
+.video-player .video-actions .btn-fullscreen:hover {
+  background-color: #e9ecef;
+  transform: translateY(-1px);
+}
+
+.video-player .completion-message {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #4caf50;
+  font-weight: 500;
+}
 
 .video-container {
   position: relative;

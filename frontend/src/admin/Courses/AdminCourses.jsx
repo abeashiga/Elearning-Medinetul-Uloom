@@ -11,6 +11,7 @@ const AdminCourses = ({ user }) => {
     width: window.innerWidth,
     height: window.innerHeight
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const handleResize = () => {
@@ -27,6 +28,12 @@ const AdminCourses = ({ user }) => {
   if (user && user.role !== "admin") return navigate("/");
 
   const { courses } = CourseData();
+
+  useEffect(() => {
+    if (courses) {
+      setIsLoading(false);
+    }
+  }, [courses]);
 
   return (
     <Layout>
@@ -76,7 +83,13 @@ const AdminCourses = ({ user }) => {
               </div>
             </div>
             <div className="card-body p-2" style={{ height: 'calc(100% - 40px)', overflowY: 'auto' }}> {/* Tighter padding */}
-              {courses && courses.length > 0 ? (
+              {isLoading ? (
+                <div className="text-center py-4">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              ) : courses && courses.length > 0 ? (
                 <div className="row row-cols-1 row-cols-sm-2 row-cols-md-2 row-cols-lg-3 g-1"> {/* Fewer columns, tighter gutter */}
                   {courses.map((course) => (
                     <div className="col" key={course._id}>

@@ -62,6 +62,14 @@ app.use('/uploads', (req, res, next) => {
     res.setHeader('Content-Type', 'image/jpeg');
   } else if (ext === '.pdf') {
     res.setHeader('Content-Type', 'application/pdf');
+  } else if (['.mp3', '.wav', '.ogg', '.m4a'].includes(ext)) {  // Add audio content types
+    const mimeTypes = {
+      '.mp3': 'audio/mpeg',
+      '.wav': 'audio/wav',
+      '.ogg': 'audio/ogg',
+      '.m4a': 'audio/mp4'
+    };
+    res.setHeader('Content-Type', mimeTypes[ext] || 'audio/mpeg');
   }
   
   next();

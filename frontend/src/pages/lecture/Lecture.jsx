@@ -330,6 +330,7 @@ const Lecture = ({ user }) => {
 
     const getFileUrl = (filePath) => {
       const cleanPath = filePath
+        .replace(/^.*[\/\\]uploads[\/\\]/, '')
         .replace(/\\/g, '/')
         .replace(/^\/+/, '')
         .replace(/^uploads\//, '');
@@ -363,27 +364,67 @@ const Lecture = ({ user }) => {
       } else {
         const fileUrl = getFileUrl(lecture.file);
         return (
-          <video
-            controls
-            controlsList="nodownload"
-            className="lecture-video"
-            onEnded={() => {
-              if (!isCompleted) {
-                handleLectureCompletion(lecture._id);
-              }
-            }}
-          >
-            <source src={fileUrl} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+          <div className="video-player">
+            <div className="file-header">
+              <FaPlay className="file-icon" />
+              <div className="file-info">
+                <h3>{lecture.title}</h3>
+                <p>Video Lecture</p>
+              </div>
+            </div>
+            <div className="video-content">
+              <video
+                key={fileUrl}
+                controls
+                controlsList="nodownload"
+                className="lecture-video"
+                onEnded={() => {
+                  if (!isCompleted) {
+                    handleLectureCompletion(lecture._id);
+                  }
+                }}
+                onError={(e) => {
+                  console.error("Video loading error:", {
+                    error: e,
+                    src: fileUrl,
+                    event: e.nativeEvent
+                  });
+                  toast.error("Failed to load video. Please try again or contact support.");
+                }}
+              >
+                <source src={fileUrl} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+            <div className="video-actions">
+              {!isCompleted && (
+                <button
+                  className="btn btn-success"
+                  onClick={() => handleLectureCompletion(lecture._id)}
+                >
+                  <TiTick /> Mark as Complete
+                </button>
+              )}
+              {isCompleted && <div className="completion-message"><TiTick /> Completed</div>}
+              <button className="btn btn-fullscreen" onClick={() => window.open(fileUrl, '_blank')}>
+                <FaExpand /> Fullscreen
+              </button>
+            </div>
+          </div>
         );
       }
     }
 
     const currentLectureId = lecture._id;
+    const fileUrl = getFileUrl(lecture.file);
 
     switch (lecture.fileType) {
       case 'audio':
+        console.log('Audio file details:', {
+          originalPath: lecture.file,
+          cleanedPath: getFileUrl(lecture.file),
+          lecture: lecture
+        });
         return (
           <div className="audio-player">
             <div className="file-header">
@@ -400,7 +441,14 @@ const Lecture = ({ user }) => {
                 controls
                 preload="metadata"
                 onEnded={() => handleLectureCompletion(currentLectureId)}
-                onError={(e) => console.error("Audio loading error:", e) }
+                onError={(e) => {
+                  console.error("Audio loading error:", {
+                    error: e,
+                    src: fileUrl,
+                    event: e.nativeEvent
+                  });
+                  toast.error("Failed to load audio file. Please try again or contact support.");
+                }}
               />
             </div>
             <div className="audio-actions">
