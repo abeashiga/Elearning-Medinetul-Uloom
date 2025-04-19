@@ -37,131 +37,282 @@ const AdminCourses = ({ user }) => {
 
   return (
     <Layout>
-      {/* Container with further decreased height */}
-      <div className="admin-courses-container bg-white" style={{
-        position: 'absolute',
-        right: '20px',
-        width: '75%',
-        padding: '0 2rem',
-        height: '70vh', // Reduced from 85vh to 70vh
-        overflowY: 'auto',
-        marginTop: '10px', // Reduced margin
-        marginBottom: '10px', // Reduced margin
-        borderLeft: ' #e0e0e0'
-      }}>
-        {/* Compact Page Header */}
-        <div className="page-header py-2 mb-2 bg-#e0e0e0 fw-bold bg-gradient"> {/* Further reduced padding */}
-          <div className="container-fluid px-3"> {/* Reduced padding */}
-            <div className="d-flex justify-content-between align-items-center">
-              <div>
-                <h1 className="text-black mb-0 fw-bold" style={{ fontSize: '1.3rem' }}>Course Management</h1> {/* Smaller font */}
-                <p className="text-black-50 mb-0" style={{ fontSize: '0.8rem' }}> {/* Smaller font */}
-                  <small>Manage all courses in the system</small>
-                </p>
-              </div>
+      <div className="admin-courses-page">
+        <div className="admin-courses-container">
+          <div className="section-header">
+            <div className="header-content">
+              <h1 className="section-title">Course Management</h1>
+              <p className="section-subtitle">Create and manage your educational content</p>
               <button 
-                className="btn btn-light btn-sm shadow-sm px-2" // More compact button
+                className="common-btn"
                 onClick={() => navigate("/admin/course/add")}
               >
-                <FaPlus className="me-1" /> Add
+                <FaPlus className="icon" /> New Course
               </button>
             </div>
           </div>
-        </div>
 
-        {/* Main Content with tighter spacing */}
-        <div className="container-fluid px-3" style={{ height: 'calc(100% - 80px)' }}> {/* Adjusted height */}
-          <div className="card border-0 shadow-sm h-100">
-            <div className="card-header bg-white border-0 py-1"> {/* Minimal padding */}
-              <div className="d-flex justify-content-between align-items-center">
-                <h2 className="h6 mb-0 text-primary fw-bold" style={{ fontSize: '0.95rem' }}> {/* Smaller font */}
-                  <FaBook className="me-1" size={14} /> All Courses {/* Smaller icon */}
-                </h2>
-                <span className="badge bg-primary rounded-pill" style={{ fontSize: '0.75rem' }}>
-                  {courses?.length || 0} courses
-                </span>
-              </div>
-            </div>
-            <div className="card-body p-2" style={{ height: 'calc(100% - 40px)', overflowY: 'auto' }}> {/* Tighter padding */}
-              {isLoading ? (
-                <div className="text-center py-4">
-                  <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
+          <div className="courses-section">
+            <div className="container">
+              <div className="stats-row">
+                <div className="stat-card">
+                  <div className="stat-icon">
+                    <FaBook />
+                  </div>
+                  <div className="stat-details">
+                    <h3 className="stat-value">{courses?.length || 0}</h3>
+                    <p className="stat-label">Total Courses</p>
                   </div>
                 </div>
-              ) : courses && courses.length > 0 ? (
-                <div className="row row-cols-1 row-cols-sm-2 row-cols-md-2 row-cols-lg-3 g-1"> {/* Fewer columns, tighter gutter */}
-                  {courses.map((course) => (
-                    <div className="col" key={course._id}>
-                      <CourseCard course={course} compact={true} />
+              </div>
+
+              <div className="courses-container">
+                {isLoading ? (
+                  <div className="loading-state">
+                    <div className="spinner"></div>
+                    <p>Loading courses...</p>
+                  </div>
+                ) : courses && courses.length > 0 ? (
+                  <div className="courses-grid">
+                    {courses.map((course) => (
+                      <div className="course-card" key={course._id}>
+                        <CourseCard course={course} compact={true} />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <div className="empty-icon">
+                      <FaBookOpen />
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-2" style={{ height: '100%' }}>
-                  <div className="empty-state bg-white p-2 rounded-3 shadow-sm mx-auto" style={{ maxWidth: '350px' }}>
-                    <FaBookOpen className="text-muted mb-1" style={{ fontSize: '1.5rem' }} /> {/* Smaller icon */}
-                    <h4 className="text-muted fw-normal" style={{ fontSize: '1rem' }}>No Courses</h4> {/* Smaller text */}
-                    <p className="text-muted mb-2" style={{ fontSize: '0.8rem' }}>
-                      Add your first course
-                    </p>
+                    <h3>Start Your Teaching Journey</h3>
+                    <p>Create your first course and begin sharing knowledge</p>
                     <button 
-                      className="btn btn-primary px-2 btn-sm"
+                      className="common-btn"
                       onClick={() => navigate("/admin/course/add")}
                     >
-                      <FaPlus className="me-1" /> Add
+                      Create Course
                     </button>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Compact screen size display */}
-        <div style={{
-          position: 'fixed',
-          bottom: '10px',
-          right: '20px',
-          backgroundColor: 'rgba(0,0,0,0.7)',
-          color: 'white',
-          padding: '3px 6px',
-          borderRadius: '3px',
-          fontSize: '10px',
-          zIndex: 1000
-        }}>
-          {windowSize.width} x {windowSize.height} px
-        </div>
-
-        {/* Custom CSS */}
         <style jsx>{`
-          .page-header {
-            background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%);
-            border-radius: 0;
+          .admin-courses-page {
+            display: flex;
+            min-height: 100vh;
+            background: var(--background-light);
           }
-          .card {
-            border-radius: 0.4rem;
-            transition: all 0.2s ease;
-          }
-          .card:hover {
-            box-shadow: 0 0.2rem 0.8rem rgba(0, 0, 0, 0.08) !important;
-          }
+
           .admin-courses-container {
-            background-color:rgb(240, 234, 244);
+            position: relative;
+            width: 110%;
+            margin-left: auto;
+            margin-right: 0.5rem;
+            padding-left: 1.5rem;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: var(--spacing-xl);
           }
+
+          .section-header {
+            background: var(--primary-color);
+            padding: var(--spacing-xl) 0;
+            text-align: center;
+            color: var(--text-light);
+            height: 40%;
+            width: 100%;
+          }
+
+          .header-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-md);
+          }
+
+          .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+            color: var(--text-light);
+          }
+
+          .section-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: var(--spacing-lg);
+          }
+
+          .courses-section {
+            padding: var(--spacing-xl) 0;
+            flex: 1;
+          }
+
+          .container {
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-sm);
+          }
+
+          .stats-row {
+            margin-bottom: var(--spacing-xl);
+          }
+
+          .stat-card {
+            background: var(--background-white);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+          }
+
+          .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+          }
+
+          .stat-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: var(--border-radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+          }
+
+          .stat-details {
+            flex: 1;
+          }
+
+          .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0;
+          }
+
+          .stat-label {
+            color: var(--text-secondary);
+            margin: 0;
+            font-size: 0.9rem;
+          }
+
+          .courses-container {
+            background: var(--background-white);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+          }
+
+          .courses-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-lg);
+          }
+
+          .course-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+          }
+
+          .course-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+          }
+
+          @media (max-width: 1200px) {
+            .courses-grid {
+              grid-template-columns: repeat(2, 1fr);
+            }
+          }
+
           @media (max-width: 768px) {
             .admin-courses-container {
-              width: 100% !important;
-              padding: 0 0.8rem !important;
-              right: 0 !important;
-              position: relative;
-              height: auto !important;
-              margin: 8px 0 !important;
-              border-left: none !important;
+              width: 100%;
+              margin-left: 0;
+              margin-right: 0;
+              padding-left: 0;
             }
-            .page-header {
-              border-radius: 0 !important;
+
+            .section-title {
+              font-size: 2rem;
             }
+
+            .section-subtitle {
+              font-size: 1rem;
+            }
+
+            .courses-grid {
+              grid-template-columns: 1fr;
+            }
+
+            .stat-card {
+              padding: var(--spacing-md);
+            }
+
+            .stat-value {
+              font-size: 1.5rem;
+            }
+          }
+
+          .loading-state {
+            text-align: center;
+            padding: var(--spacing-xl) 0;
+          }
+
+          .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto var(--spacing-md);
+          }
+
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+
+          .empty-state {
+            text-align: center;
+            padding: var(--spacing-xl) 0;
+          }
+
+          .empty-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto var(--spacing-lg);
+          }
+
+          .empty-state h3 {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+          }
+
+          .empty-state p {
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-lg);
+            font-size: 1.1rem;
           }
         `}</style>
       </div>
