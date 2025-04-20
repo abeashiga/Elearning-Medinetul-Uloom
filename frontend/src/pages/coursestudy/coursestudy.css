@@ -8,19 +8,19 @@
 
   h2 {
     font-size: 24px;
-    color: #8a4baf;
+    color: var(--secondary-dark);
     text-align: center;
   }
 
   h4 {
     font-size: 21px;
-    color: #8a4baf;
+    color:var(--secondary-dark);
     text-align: center;
   }
 
   h5 {
     font-size: 20px;
-    color: #8a4baf;
+    color: var(--secondary-dark);
     text-align: center;
   }
 
@@ -41,7 +41,7 @@
 
 .course-actions .common-btn {
   padding: 0.8rem 1.5rem;
-  background: #2196F3;
+  background: var(--secondary-color);
   color: white;
   border: none;
   border-radius: 5px;
@@ -51,7 +51,7 @@
 }
 
 .course-actions .common-btn:hover {
-  background: #1976D2;
+  background: var(--secondary-dark);
 }
 
 .common-btn.disabled {

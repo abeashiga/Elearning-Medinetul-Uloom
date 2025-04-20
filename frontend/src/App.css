@@ -1,7 +1,11 @@
 :root {
-  --primary-color: #8a4baf;
-  --primary-dark: #5f357e;
-  --secondary-color: #2c3e50;
+  --primary-color: #f59e0b; /* from-yellow-500 */
+  --primary-dark: #d97706; /* to-yellow-600 */
+  --secondary-color-rgb: 15, 118, 110;
+  --secondary-dark-rgb: 17, 94, 89;
+  --secondary-color: #0f766e; /* RGB: 15, 118, 110 */
+  --secondary-dark: #115e59; /* RGB: 17, 94, 89 */
+
   --text-primary: #333;
   --text-secondary: #666;
   --text-light: #ecf0f1;
@@ -25,7 +29,8 @@ body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Oxygen, Ubuntu, Cantarell, sans-serif;
   min-height: 100vh;
   position: relative;
   padding-bottom: 100px;
@@ -172,7 +177,7 @@ body {
   .container {
     max-width: 720px;
   }
-  
+
   .grid-4 {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -182,15 +187,16 @@ body {
   .container {
     max-width: 540px;
   }
-  
-  .grid-3, .grid-4 {
+
+  .grid-3,
+  .grid-4 {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .section {
     padding: var(--spacing-lg) 0;
   }
-  
+
   .section-title {
     font-size: 1.75rem;
   }
@@ -201,11 +207,13 @@ body {
     max-width: 100%;
     padding: 0 var(--spacing-sm);
   }
-  
-  .grid-2, .grid-3, .grid-4 {
+
+  .grid-2,
+  .grid-3,
+  .grid-4 {
     grid-template-columns: 1fr;
   }
-  
+
   .common-btn {
     width: 100%;
   }

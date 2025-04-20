@@ -1,11 +1,20 @@
 .main-header {
-  background-color: var(--secondary-color);
+  /* Background with image and gradient overlay */
+  background: 
+    linear-gradient(
+      to right, 
+      rgba(var(--secondary-color-rgb), 0.85), 
+      rgba(var(--secondary-dark-rgb), 0.85)
+    ),
+    url('islamic-pattern.png') center/cover;
+  
   color: var(--text-light);
   padding: var(--spacing-md) 0;
   position: sticky;
   top: 0;
   z-index: 1000;
   box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
 }
 
 .header-content {
@@ -15,20 +24,29 @@
 }
 
 .logo {
-  font-size: 1.5rem;
-  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
 }
 
 .logo-link {
-  color: var(--text-light);
+  display: inline-block;
   text-decoration: none;
-  transition: color 0.3s ease;
 }
 
-.logo-link:hover {
-  color: var(--primary-color);
+.logo img {
+  width: 100px; /* Adjust based on your preference */
+  height: auto;
+  /* border-radius: 12px; Soft rounded corners */
+  /* box-shadow: 0 4px 10px rgba(255, 255, 255, 0.459); Subtle shadow */
+  /* transition: transform 0.3s ease, box-shadow 0.3s ease; */
 }
 
+.logo img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
 .header-center {
   display: flex;
   justify-content: center;

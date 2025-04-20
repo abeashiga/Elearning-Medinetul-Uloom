@@ -18,7 +18,12 @@ const Header = ({ isAuth}) => {
         <div className="header-content">
           <div className="logo">
             <Link to="/" className="logo-link">
-              Medinatul-Uloom
+             <img
+                    src="logo3.png"
+                    alt="Medinatul Uloom Logo"
+                    className="img-fluid"
+                    style={{ maxWidth: "200px" }}
+                  />
             </Link>
           </div>
 

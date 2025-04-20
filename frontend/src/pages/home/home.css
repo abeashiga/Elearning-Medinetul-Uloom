@@ -4,7 +4,7 @@
 
 /* Hero Section */
 .hero-section {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  background: linear-gradient(to right, var(--primary-color), var(--primary-dark));
   color: var(--text-light);
   padding: var(--spacing-xl) 0;
   text-align: center;
@@ -84,7 +84,7 @@
 
 /* CTA Section */
 .cta-section {
-  background: linear-gradient(135deg, var(--secondary-color), var(--primary-dark));
+  background: linear-gradient(to right, var(--primary-color), var(--primary-dark));
   color: var(--text-light);
   text-align: center;
 }
