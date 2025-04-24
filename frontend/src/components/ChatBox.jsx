@@ -39,7 +39,7 @@ const ChatBox = ({ isAdmin = false }) => {
           const senders = data
             .filter(msg => 
               msg.sender._id !== user._id && // Message is not from admin
-              (!msg.recipient || msg.recipient === user._id) // Message is to admin
+              (!msg.recipient || msg.recipient._id === user._id) // Message is to admin
             )
             .reduce((acc, msg) => {
               if (!acc.find(s => s._id === msg.sender._id)) {
@@ -67,12 +67,9 @@ const ChatBox = ({ isAdmin = false }) => {
       try {
         const token = localStorage.getItem('token');
         const messageData = {
-          message: newMessage
+          message: newMessage,
+          recipientId: isAdmin ? selectedUser : null
         };
-
-        if (isAdmin && selectedUser) {
-          messageData.recipientId = selectedUser;
-        }
 
         const { data } = await axios.post(`${server}/api/chat/send`, 
           messageData,
@@ -94,9 +91,9 @@ const ChatBox = ({ isAdmin = false }) => {
   const filteredMessages = selectedUser
     ? messages.filter(msg => 
         // Messages from the selected user to admin
-        (msg.sender._id === selectedUser && (!msg.recipient || msg.recipient === user._id)) ||
+        (msg.sender._id === selectedUser && (!msg.recipient || msg.recipient._id === user._id)) ||
         // Messages from admin to the selected user
-        (msg.sender._id === user._id && msg.recipient === selectedUser) ||
+        (msg.sender._id === user._id && msg.recipient && msg.recipient._id === selectedUser) ||
         // Admin's own messages in the conversation
         (msg.sender._id === user._id && !msg.recipient && msg.isAdmin)
       )
@@ -127,9 +124,9 @@ const ChatBox = ({ isAdmin = false }) => {
           // Keep messages that are not part of this conversation
           !(
             // Messages from user to admin
-            (msg.sender._id === selectedUser && (!msg.recipient || msg.recipient === user._id)) ||
+            (msg.sender._id === selectedUser && (!msg.recipient || msg.recipient._id === user._id)) ||
             // Messages from admin to user
-            (msg.sender._id === user._id && msg.recipient === selectedUser) ||
+            (msg.sender._id === user._id && msg.recipient && msg.recipient._id === selectedUser) ||
             // Admin's own messages in the conversation
             (msg.sender._id === user._id && !msg.recipient && msg.isAdmin)
           )
@@ -180,7 +177,7 @@ const ChatBox = ({ isAdmin = false }) => {
                       {messages.filter(msg => 
                         msg.sender._id === sender._id && 
                         !msg.read && 
-                        (!msg.recipient || msg.recipient === user._id)
+                        (!msg.recipient || msg.recipient._id === user._id)
                       ).length}
                     </span>
                   </button>
@@ -275,4 +272,4 @@ const ChatBox = ({ isAdmin = false }) => {
   );
 };
 
-export default ChatBox; 
+export default ChatBox;
