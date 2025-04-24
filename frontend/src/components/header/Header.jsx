@@ -8,6 +8,7 @@ import { server } from "../../config";
 import Notification from "../Notification";
 
 
+
 const Header = ({ isAuth}) => {
   const { user } = UserData();
   const [showTooltip, setShowTooltip] = useState(false);
@@ -32,6 +33,8 @@ const Header = ({ isAuth}) => {
             <Link to="/" className="nav-link">Home</Link>
             <Link to="/courses" className="nav-link">Courses</Link>
             <Link to="/about" className="nav-link">About</Link>
+            {/* <Link to="/blog" className="nav-link">Blog</Link> */}
+            
             
             {isAuth ? (
               <Link 

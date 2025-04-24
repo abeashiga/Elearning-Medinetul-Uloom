@@ -32,6 +32,7 @@ import EditCourse from './admin/Courses/EditCourse';
 import BlogPost from "./pages/blog/BlogPost";
 import ManageBlog from "./admin/Blog/ManageBlog";
 import ChatBox from "./components/ChatBox";
+import BlogSection from "./components/blog/BlogSection";
 
 const App = () => {
   const { isAuth, user, loading } = UserData();
@@ -46,6 +47,7 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/courses" element={<Courses />} />
+            <Route path="/blog" element={<BlogSection />} />
             <Route
               path="/account"
               element={isAuth ? <Account user={user} /> : <Login />}
