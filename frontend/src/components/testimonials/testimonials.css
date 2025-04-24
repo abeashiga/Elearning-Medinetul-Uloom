@@ -31,13 +31,29 @@
       }
 
       .student-image {
-        img {
-          width: 80px;
-          height: 80px;
-          border-radius: 50%;
-          object-fit: cover;
-          margin-bottom: 10px;
-        }
+        position: relative;
+        width: 80px;
+        height: 80px;
+        margin-bottom: 15px;
+      }
+
+      .student-image img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #e5e7eb;
+      }
+
+      .default-icon {
+        width: 100%;
+        height: 100%;
+        color: #9ca3af;
+        display: none;
+      }
+
+      .student-image:not(:has(img)) .default-icon {
+        display: block;
       }
 
       .message {
@@ -64,4 +80,47 @@
       }
     }
   }
+}
+
+.testimonial-form {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.testimonial-input {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.testimonial-input:focus {
+  outline: none;
+  border-color: #1a1a1a;
+}
+
+.submit-testimonial {
+  padding: 8px 16px;
+  background-color: #1a1a1a;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.submit-testimonial:hover {
+  background-color: #333333;
+  transform: translateY(-2px);
 }

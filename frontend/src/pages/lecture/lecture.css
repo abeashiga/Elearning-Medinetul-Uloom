@@ -424,7 +424,7 @@
 }
 
 .common-btn {
-  background-color: var(--secondary-color);
+  background-color: #3498db;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -436,7 +436,7 @@
 }
 
 .common-btn:hover {
-  background-color: var(--secondary-dark);
+  background-color: #2980b9;
   transform: translateY(-2px);
 }
 

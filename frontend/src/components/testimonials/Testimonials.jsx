@@ -1,49 +1,115 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./testimonials.css";
+import { server } from "../../config";
+import axios from "axios";
+import { UserData } from "../../context/UserContext";
+import toast from "react-hot-toast";
+import { FaUserCircle } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 const Testimonials = () => {
-  const testimonialsData = [
-    {
-      id: 1,
-      name: "Abdinago Ashiga",
-      position: "Student",
-      message:
-        "This platform helped me learn so effectively. The courses are amazing and the instructors are top-notch.",
-      image:
-        "https://th.bing.com/th?q=Current+Bachelor&w=120&h=120&c=1&rs=1&qlt=90&cb=1&dpr=1.3&pid=InlineBlock&mkt=en-IN&cc=IN&setlang=en&adlt=moderate&t=1&mw=247",
-    },
-    {
-      id: 2,
-      name: "Aliyu Yunus",
-      position: "Student",
-      message:
-        "I've learned more here than in any other place. The interactive lessons and quizzes make learning enjoyable.",
-      image:
-        "https://th.bing.com/th/id/OIP.GKAiW3oc2TWXVEeZAzrWOAHaJF?w=135&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7",
-    },
-    {
-      id: 3,
-      name: "Entonyos Solomon",
-      position: "Student",
-      message:
-        "This platform helped me learn so effectively. The courses are amazing and the instructors are top-notch.",
-      image:
-        "https://th.bing.com/th?q=Current+Bachelor&w=120&h=120&c=1&rs=1&qlt=90&cb=1&dpr=1.3&pid=InlineBlock&mkt=en-IN&cc=IN&setlang=en&adlt=moderate&t=1&mw=247",
-    },
-  ];
+  const [testimonials, setTestimonials] = useState([]);
+  const [newTestimonial, setNewTestimonial] = useState("");
+  const { user } = UserData();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchTestimonials();
+  }, []);
+
+  const fetchTestimonials = async () => {
+    try {
+      const response = await axios.get(`${server}/api/testimonials`);
+      // Sort by date and take only the latest 5
+      const sortedTestimonials = response.data
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 5);
+      setTestimonials(sortedTestimonials);
+    } catch (error) {
+      console.error("Error fetching testimonials:", error);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!user) {
+      toast.error("Please register first to share your experience");
+      navigate('/register');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${server}/api/testimonials`,
+        { message: newTestimonial },
+        {
+          headers: {
+            token: token,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+      toast.success("Testimonial submitted successfully!");
+      setNewTestimonial("");
+      // Add the new testimonial to the beginning of the list
+      setTestimonials(prev => [response.data, ...prev].slice(0, 5));
+    } catch (error) {
+      if (error.response?.status === 401) {
+        toast.error("Please register first to share your experience");
+        navigate('/register');
+      } else {
+        toast.error(error.response?.data?.message || "Failed to submit testimonial");
+      }
+    }
+  };
+
+  const getImageUrl = (profileImage) => {
+    if (!profileImage) return null;
+    return `${server}/uploads/profiles/${profileImage}`;
+  };
+
   return (
     <section className="testimonials">
       <h2>What our students say</h2>
+      
+      {user && (
+        <form onSubmit={handleSubmit} className="testimonial-form">
+          <textarea
+            value={newTestimonial}
+            onChange={(e) => setNewTestimonial(e.target.value)}
+            placeholder="Share your experience..."
+            required
+            className="testimonial-input"
+          />
+          <button type="submit" className="submit-testimonial">
+            Submit Testimonial
+          </button>
+        </form>
+      )}
+
       <div className="testmonials-cards">
-        {testimonialsData.map((e) => (
-          <div className="testimonial-card" key={e.id}>
+        {testimonials.map((testimonial) => (
+          <div className="testimonial-card" key={testimonial._id}>
             <div className="student-image">
-              <img src={e.image} alt="" />
+              {testimonial.user?.profileImage ? (
+                <img 
+                  src={getImageUrl(testimonial.user.profileImage)}
+                  alt={testimonial.user?.name || "Student"}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'block';
+                  }}
+                />
+              ) : (
+                <FaUserCircle className="default-icon" />
+              )}
             </div>
-            <p className="message">{e.message}</p>
+            <p className="message">{testimonial.message}</p>
             <div className="info">
-              <p className="name">{e.name}</p>
-              <p className="position">{e.position}</p>
+              <p className="name">{testimonial.user?.name || "Anonymous"}</p>
+              <p className="position">Student</p>
             </div>
           </div>
         ))}

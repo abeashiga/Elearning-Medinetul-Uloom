@@ -44,17 +44,11 @@ export const getAssessment = async (req, res) => {
   try {
     const { courseId } = req.params;
 
-    const assessment = await Assessment.findOne({ courseId });
-    if (!assessment) {
-      return res.status(404).json({
-        success: false,
-        message: "Assessment not found",
-      });
-    }
-
+    const assessments = await Assessment.find({ courseId });
+    
     res.status(200).json({
       success: true,
-      assessment,
+      assessments
     });
   } catch (error) {
     res.status(500).json({
@@ -156,6 +150,34 @@ export const getAssessmentStatus = async (req, res) => {
       success: false,
       message: "Error fetching assessment status",
       error: error.message
+    });
+  }
+};
+
+// Delete assessment
+export const deleteAssessment = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const assessment = await Assessment.findById(id);
+    if (!assessment) {
+      return res.status(404).json({
+        success: false,
+        message: "Assessment not found"
+      });
+    }
+
+    await Assessment.findByIdAndDelete(id);
+
+    res.status(200).json({
+      success: true,
+      message: "Assessment deleted successfully"
+    });
+  } catch (error) {
+    console.error("Delete assessment error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message
     });
   }
 }; 

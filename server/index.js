@@ -9,6 +9,9 @@ import { User } from "./models/User.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
+import testimonialRoutes from './routes/testimonial.js';
+import blogRoutes from "./routes/blog.js";
+import chatRoutes from "./routes/chat.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -58,11 +61,19 @@ app.use('/uploads', (req, res, next) => {
   
   if (filePath.includes('/lectures/') && ext === '.mp4') {
     res.setHeader('Content-Type', 'video/mp4');
-  } else if (filePath.includes('/profiles/')) {
-    res.setHeader('Content-Type', 'image/jpeg');
+  } else if (filePath.includes('/profiles/') || filePath.includes('/blog/')) {
+    if (ext === '.jpg' || ext === '.jpeg') {
+      res.setHeader('Content-Type', 'image/jpeg');
+    } else if (ext === '.png') {
+      res.setHeader('Content-Type', 'image/png');
+    } else if (ext === '.gif') {
+      res.setHeader('Content-Type', 'image/gif');
+    } else if (ext === '.webp') {
+      res.setHeader('Content-Type', 'image/webp');
+    }
   } else if (ext === '.pdf') {
     res.setHeader('Content-Type', 'application/pdf');
-  } else if (['.mp3', '.wav', '.ogg', '.m4a'].includes(ext)) {  // Add audio content types
+  } else if (['.mp3', '.wav', '.ogg', '.m4a'].includes(ext)) {
     const mimeTypes = {
       '.mp3': 'audio/mpeg',
       '.wav': 'audio/wav',
@@ -377,6 +388,9 @@ app.use("/api", userRoutes);
 app.use("/api/assessment", assessmentRoutes);
 app.use("/api/certificate", certificateRoutes);
 app.use("/api", notificationRoutes);
+app.use('/api/testimonials', testimonialRoutes);
+app.use("/api", blogRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

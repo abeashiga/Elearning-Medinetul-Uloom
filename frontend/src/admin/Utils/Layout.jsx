@@ -1,5 +1,6 @@
 import React from "react";
 import Sidebar from "./Sidebar";
+import ChatBox from "../../components/ChatBox";
 import "./common.css";
 
 const Layout = ({ children }) => {
@@ -7,6 +8,7 @@ const Layout = ({ children }) => {
     <div className="dashboard-admin">
       <Sidebar />
       <div className="content">{children}</div>
+      <ChatBox isAdmin={true} />
     </div>
   );
 };

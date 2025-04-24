@@ -118,9 +118,132 @@ const PaymentSuccess = ({ user }) => {
   }, [navigate, fetchUser, fetchCourses, fetchMyCourse, location.search, setIsAuth]);
 
   return (
-    <div className="payment-success">
-      <h2>Payment Successful!</h2>
-      <p>Verifying your payment...</p>
+    <div className="payment-success" style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '100vh',
+      padding: '20px',
+      textAlign: 'center',
+      background: 'linear-gradient(135deg, #f0fff0 0%, #ffffff 100%)'
+    }}>
+      <div style={{
+        backgroundColor: 'white',
+        padding: '50px',
+        borderRadius: '20px',
+        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.05)',
+        maxWidth: '450px',
+        width: '100%',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '6px',
+          background: 'linear-gradient(90deg, #22c55e 0%, #16a34a 100%)'
+        }} />
+        
+        <div style={{
+          color: '#22c55e',
+          fontSize: '64px',
+          marginBottom: '25px',
+          animation: 'scaleIn 0.5s ease-out',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}>
+          <div style={{
+            width: '80px',
+            height: '80px',
+            borderRadius: '50%',
+            backgroundColor: '#f0fff0',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            boxShadow: '0 4px 15px rgba(34, 197, 94, 0.2)'
+          }}>
+            ✓
+          </div>
+        </div>
+
+        <h2 style={{
+          color: '#22c55e',
+          fontSize: '28px',
+          marginBottom: '15px',
+          fontWeight: '600',
+          animation: 'fadeIn 0.5s ease-out 0.3s both'
+        }}>
+          Payment Successful!
+        </h2>
+
+        <p style={{
+          color: '#4b5563',
+          fontSize: '16px',
+          lineHeight: '1.6',
+          marginBottom: '30px',
+          animation: 'fadeIn 0.5s ease-out 0.5s both'
+        }}>
+          Verifying your payment...
+        </p>
+
+        <div style={{
+          width: '100%',
+          height: '4px',
+          backgroundColor: '#f0fff0',
+          borderRadius: '2px',
+          overflow: 'hidden',
+          marginTop: '20px'
+        }}>
+          <div style={{
+            width: '100%',
+            height: '100%',
+            backgroundColor: '#22c55e',
+            animation: 'loading 2s ease-in-out infinite'
+          }} />
+        </div>
+      </div>
+
+      <style>
+        {`
+          @keyframes scaleIn {
+            from {
+              transform: scale(0);
+              opacity: 0;
+            }
+            to {
+              transform: scale(1);
+              opacity: 1;
+            }
+          }
+
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          @keyframes loading {
+            0% {
+              transform: translateX(-100%);
+            }
+            50% {
+              transform: translateX(0);
+            }
+            100% {
+              transform: translateX(100%);
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };

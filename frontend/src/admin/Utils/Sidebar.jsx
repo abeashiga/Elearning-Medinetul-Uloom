@@ -2,7 +2,7 @@ import React from "react";
 import "./common.css";
 import { Link, useNavigate } from "react-router-dom";
 import { AiFillHome, AiOutlineLogout } from "react-icons/ai";
-import { FaBook, FaUserAlt } from "react-icons/fa";
+import { FaBook, FaUserAlt, FaBlog } from "react-icons/fa";
 import { UserData } from "../../context/UserContext";
 
 const Sidebar = () => {
@@ -37,14 +37,24 @@ const Sidebar = () => {
         </li>
 
         {user && user.role === "admin" && (
-          <li>
-            <Link to={"/admin/users"}>
-              <div className="icon">
-                <FaUserAlt />
-              </div>
-              <span>Users</span>
-            </Link>
-          </li>
+          <>
+            <li>
+              <Link to={"/admin/users"}>
+                <div className="icon">
+                  <FaUserAlt />
+                </div>
+                <span>Users</span>
+              </Link>
+            </li>
+            <li>
+              <Link to={"/admin/blog"}>
+                <div className="icon">
+                  <FaBlog />
+                </div>
+                <span>Blog</span>
+              </Link>
+            </li>
+          </>
         )}
 
         <li>

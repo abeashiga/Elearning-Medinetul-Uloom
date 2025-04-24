@@ -29,6 +29,9 @@ import TakeAssessment from "./pages/assessment/TakeAssessment";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Certificate from "./pages/certificate/Certificate";
 import EditCourse from './admin/Courses/EditCourse';
+import BlogPost from "./pages/blog/BlogPost";
+import ManageBlog from "./admin/Blog/ManageBlog";
+import ChatBox from "./components/ChatBox";
 
 const App = () => {
   const { isAuth, user, loading } = UserData();
@@ -104,7 +107,7 @@ const App = () => {
               }
             />
             <Route
-              path="/admin/course/add"
+              path="/admin/courses/add"
               element={
                 isAuth && user?.role === "admin" ? (
                   <AddCourse />
@@ -114,25 +117,29 @@ const App = () => {
               }
             />
             <Route
-              path="/admin/course/edit/:id"
+              path="/admin/courses/edit/:id"
               element={
-                <ProtectedRoute isAdmin>
+                isAuth && user?.role === "admin" ? (
                   <EditCourse />
-                </ProtectedRoute>
+                ) : (
+                  <Home />
+                )
               }
             />
             <Route
-              path="/forgot"
-              element={isAuth ? <Home /> : <ForgotPassword />}
-            />
-            <Route
-              path="/reset"
-              element={isAuth ? <Home /> : <ResetPassword />}
+              path="/admin/blog"
+              element={
+                isAuth && user?.role === "admin" ? (
+                  <ManageBlog />
+                ) : (
+                  <Home />
+                )
+              }
             />
             <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password/:token" element={<ResetPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route
-              path="/course/:courseId/assessment/create"
+              path="/assessment/create"
               element={
                 <ProtectedRoute>
                   <CreateAssessment />
@@ -140,16 +147,25 @@ const App = () => {
               }
             />
             <Route
-              path="/course/:courseId/assessment"
+              path="/assessment/take/:id"
               element={
                 <ProtectedRoute>
                   <TakeAssessment />
                 </ProtectedRoute>
               }
             />
-            <Route path="/course/:courseId/certificate" element={<Certificate />} />
+            <Route
+              path="/certificate/:id"
+              element={
+                <ProtectedRoute>
+                  <Certificate />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/blog/:id" element={<BlogPost />} />
           </Routes>
           <Footer />
+          {isAuth && <ChatBox isAdmin={user?.role === "admin"} />}
         </BrowserRouter>
       )}
     </>

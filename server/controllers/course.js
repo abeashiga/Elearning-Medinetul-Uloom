@@ -498,3 +498,38 @@ export const updateLecture = TryCatch(async (req, res) => {
     throw error;
   }
 });
+
+export const rateCourse = TryCatch(async (req, res) => {
+  const { rating } = req.body;
+  const courseId = req.params.id;
+
+  if (!rating || rating < 0 || rating > 5) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid rating value. Rating must be between 0 and 5."
+    });
+  }
+
+  const course = await Courses.findById(courseId);
+  if (!course) {
+    return res.status(404).json({
+      success: false,
+      message: "Course not found"
+    });
+  }
+
+  // Update the course rating
+  const newRatingCount = course.ratingCount + 1;
+  const newRating = ((course.rating * course.ratingCount) + rating) / newRatingCount;
+
+  course.rating = newRating;
+  course.ratingCount = newRatingCount;
+  await course.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Rating updated successfully",
+    rating: newRating,
+    ratingCount: newRatingCount
+  });
+});

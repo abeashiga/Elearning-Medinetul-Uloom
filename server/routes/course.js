@@ -9,6 +9,7 @@ import {
   paymentVerification,
   addLecture,
   updateLecture,
+  rateCourse,
 } from "../controllers/course.js";
 import { isAuth, isAdmin } from "../middlewares/isAuth.js";
 import { upload } from "../middlewares/multer.js";
@@ -24,5 +25,6 @@ router.post("/course/checkout/:id", isAuth, checkout);
 router.post("/verification/:id", isAuth, paymentVerification);
 router.post("/course/:id", isAuth, isAdmin, upload.single('file'), addLecture);
 router.put("/lecture/:id", isAuth, isAdmin, upload.single('file'), updateLecture);
+router.post("/course/:id/rate", isAuth, rateCourse);
 
 export default router;
