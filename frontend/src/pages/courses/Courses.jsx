@@ -1,24 +1,41 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./courses.css";
 import { CourseData } from "../../context/CourseContext";
 import CourseCard from "../../components/coursecard/CourseCard";
 import { FaSearch, FaFilter } from 'react-icons/fa';
 
 const Courses = () => {
-  const { courses } = CourseData();
+  const { courses, fetchCourses } = CourseData();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchCourses();
+    setLoading(false);
+  }, []);
 
   // Get unique categories from courses
-  const categories = ['all', ...new Set(courses.map(course => course.category))];
+  const categories = ['all', ...new Set(courses?.map(course => course.category) || [])];
 
   // Filter courses based on search term and category
-  const filteredCourses = courses.filter(course => {
+  const filteredCourses = courses?.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          course.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || course.category === selectedCategory;
     return matchesSearch && matchesCategory;
-  });
+  }) || [];
+
+  if (loading) {
+    return (
+      <div className="courses-page">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading courses...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="courses-page">
@@ -62,7 +79,7 @@ const Courses = () => {
       {/* Courses Grid */}
       <section className="section courses-section">
         <div className="container">
-          {filteredCourses && filteredCourses.length > 0 ? (
+          {filteredCourses.length > 0 ? (
             <div className="grid grid-3">
               {filteredCourses.map((course) => (
                 <CourseCard key={course._id} course={course} />
