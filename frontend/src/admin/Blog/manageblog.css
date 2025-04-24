@@ -1,21 +1,36 @@
 .manage-blog {
-  padding: 2rem;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 2rem auto;
+  padding: 0 1rem;
 }
 
 .manage-blog h2 {
-  color: #333;
-  margin-bottom: 2rem;
   font-size: 2rem;
+  color: #2c3e50;
+  margin-bottom: 2rem;
+  text-align: center;
+  position: relative;
+  padding-bottom: 1rem;
+}
+
+.manage-blog h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 3px;
+  background: linear-gradient(to right, #3498db, #2ecc71);
 }
 
 .blog-form {
   background: white;
   padding: 2rem;
   border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   margin-bottom: 3rem;
+  animation: fadeIn 0.5s ease;
 }
 
 .form-group {
@@ -25,67 +40,79 @@
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  color: #333;
-  font-weight: 600;
+  color: #2c3e50;
+  font-weight: 500;
 }
 
-.form-group input[type="text"],
+.form-group input,
 .form-group textarea {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  padding: 0.8rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
   font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+  outline: none;
 }
 
 .form-group textarea {
+  min-height: 150px;
   resize: vertical;
-  min-height: 100px;
-}
-
-.form-group input[type="file"] {
-  display: block;
-  margin-top: 0.5rem;
 }
 
 .form-actions {
   display: flex;
   gap: 1rem;
+  justify-content: flex-end;
   margin-top: 2rem;
 }
 
 .submit-btn,
 .cancel-btn {
-  padding: 0.75rem 1.5rem;
+  padding: 0.8rem 2rem;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .submit-btn {
-  background-color: #b4690e;
+  background: linear-gradient(45deg, #3498db, #2ecc71);
   color: white;
 }
 
 .submit-btn:hover {
-  background-color: #8b4e0a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .cancel-btn {
-  background-color: #f44336;
+  background: #e74c3c;
   color: white;
 }
 
 .cancel-btn:hover {
-  background-color: #d32f2f;
+  background: #c0392b;
+  transform: translateY(-2px);
+}
+
+.blog-posts {
+  margin-top: 3rem;
 }
 
 .blog-posts h3 {
-  color: #333;
-  margin-bottom: 1.5rem;
   font-size: 1.5rem;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  text-align: center;
 }
 
 .posts-grid {
@@ -98,13 +125,21 @@
   background: white;
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: slideUp 0.5s ease;
+}
+
+.post-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
 }
 
 .post-card img {
   width: 100%;
   height: 200px;
   object-fit: cover;
+  border-bottom: 1px solid #eee;
 }
 
 .post-info {
@@ -112,70 +147,106 @@
 }
 
 .post-info h4 {
-  margin: 0 0 1rem;
-  color: #333;
   font-size: 1.2rem;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
 }
 
 .post-info p {
   color: #666;
-  margin-bottom: 1.5rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  margin-bottom: 1rem;
+  line-height: 1.5;
 }
 
 .post-actions {
   display: flex;
   gap: 1rem;
+  margin-top: 1rem;
 }
 
 .edit-btn,
 .delete-btn {
-  padding: 0.5rem 1rem;
+  flex: 1;
+  padding: 0.5rem;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .edit-btn {
-  background-color: #2196f3;
+  background: #3498db;
   color: white;
 }
 
 .edit-btn:hover {
-  background-color: #1976d2;
+  background: #2980b9;
 }
 
 .delete-btn {
-  background-color: #f44336;
+  background: #e74c3c;
   color: white;
 }
 
 .delete-btn:hover {
-  background-color: #d32f2f;
+  background: #c0392b;
 }
 
-.loading, .error {
+.loading {
   text-align: center;
   padding: 2rem;
   color: #666;
-  font-size: 1.1rem;
 }
 
 .error {
-  color: #f44336;
+  text-align: center;
+  padding: 2rem;
+  color: #e74c3c;
+  background: #fde8e8;
+  border-radius: 8px;
+  margin: 2rem;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 768px) {
   .manage-blog {
-    padding: 1rem;
+    margin: 1rem auto;
   }
 
   .blog-form {
     padding: 1.5rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .submit-btn,
+  .cancel-btn {
+    width: 100%;
   }
 
   .posts-grid {

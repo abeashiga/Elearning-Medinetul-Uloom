@@ -111,6 +111,7 @@ const ManageBlog = () => {
     });
     setIsEditing(true);
     setEditingId(post._id);
+    document.querySelector('.blog-form').scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleDelete = async (id) => {
@@ -209,6 +210,9 @@ const ManageBlog = () => {
             accept="image/*"
             required={!isEditing}
           />
+          {isEditing && (
+            <p className="image-note">Leave empty to keep existing image</p>
+          )}
         </div>
 
         <div className="form-actions">
